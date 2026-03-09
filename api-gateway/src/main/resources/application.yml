@@ -1,0 +1,31 @@
+# API Gateway — TMS
+# Single entry point; routes are configured per backend service.
+# Override service URLs via env (e.g. AUTH_SERVICE_URL=http://auth-service:8080 for Docker).
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/auth/**
+
+            - id: ticket-service
+              uri: ${TICKET_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/tickets/**
+
+            - id: file-service
+              uri: ${FILE_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/files/**
+
+            - id: notification-service
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/notifications/**
