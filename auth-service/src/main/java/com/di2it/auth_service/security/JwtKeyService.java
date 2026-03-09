@@ -1,5 +1,6 @@
 package com.di2it.auth_service.security;
 
+import com.di2it.auth_service.application.port.JwtPublicKeyProvider;
 import com.di2it.auth_service.config.JwtKeyProperties;
 
 import org.springframework.core.env.Environment;
@@ -33,7 +34,7 @@ import java.util.Base64;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class JwtKeyService {
+public class JwtKeyService implements JwtPublicKeyProvider {
 
     private static final String ENV_PRIVATE_KEY = "AUTH_JWT_PRIVATE_KEY";
     private static final String ENV_PUBLIC_KEY = "AUTH_JWT_PUBLIC_KEY";
@@ -84,6 +85,11 @@ public class JwtKeyService {
 
     public String getKeyId() {
         return properties.getKeyId();
+    }
+
+    @Override
+    public String getPublicKeyPem() {
+        return toPemPublic(publicKey);
     }
 
     private KeyPair generateAndStoreKeyPair() {

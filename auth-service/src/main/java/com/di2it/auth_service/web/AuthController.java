@@ -2,6 +2,7 @@ package com.di2it.auth_service.web;
 
 import com.di2it.auth_service.service.ChangePasswordService;
 import com.di2it.auth_service.service.DuplicateEmailException;
+import com.di2it.auth_service.service.GetPublicKeyService;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
 import com.di2it.auth_service.service.InvalidMfaCodeException;
@@ -16,12 +17,14 @@ import com.di2it.auth_service.web.dto.ChangePasswordRequest;
 import com.di2it.auth_service.web.dto.ChangePasswordResponse;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
+import com.di2it.auth_service.web.dto.PublicKeyResponse;
 import com.di2it.auth_service.web.dto.RefreshRequest;
 import com.di2it.auth_service.web.dto.RefreshResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
 import com.di2it.auth_service.web.dto.VerifyMfaRequest;
 import com.di2it.auth_service.web.dto.VerifyMfaResponse;
+import com.di2it.auth_service.web.mapper.PublicKeyResponseMapper;
 import com.di2it.auth_service.web.mapper.RefreshResponseMapper;
 
 import jakarta.validation.Valid;
@@ -31,6 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,19 +60,32 @@ public class AuthController {
     private final VerifyMfaService verifyMfaService;
     private final RefreshTokenService refreshTokenService;
     private final ChangePasswordService changePasswordService;
+    private final GetPublicKeyService getPublicKeyService;
 
     public AuthController(
         UserRegistrationService userRegistrationService,
         LoginService loginService,
         VerifyMfaService verifyMfaService,
         RefreshTokenService refreshTokenService,
-        ChangePasswordService changePasswordService
+        ChangePasswordService changePasswordService,
+        GetPublicKeyService getPublicKeyService
     ) {
         this.userRegistrationService = userRegistrationService;
         this.loginService = loginService;
         this.verifyMfaService = verifyMfaService;
         this.refreshTokenService = refreshTokenService;
         this.changePasswordService = changePasswordService;
+        this.getPublicKeyService = getPublicKeyService;
+    }
+
+    /**
+     * Expose public key for gateway and other services to validate JWT (RS256).
+     * GET /auth/public-key
+     */
+    @GetMapping("/public-key")
+    public ResponseEntity<PublicKeyResponse> getPublicKey() {
+        PublicKeyResponse response = PublicKeyResponseMapper.toResponse(getPublicKeyService.getPublicKey());
+        return ResponseEntity.ok(response);
     }
 
     /**

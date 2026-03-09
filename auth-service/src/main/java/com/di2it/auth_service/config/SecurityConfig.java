@@ -24,6 +24,7 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/public-key").permitAll()
                 .requestMatchers("/auth/tenants/*/users").permitAll()
                 .requestMatchers("/auth/login").permitAll()
                 .requestMatchers("/auth/verify-mfa").permitAll()

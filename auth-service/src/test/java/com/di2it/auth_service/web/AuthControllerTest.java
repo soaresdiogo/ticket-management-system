@@ -2,6 +2,8 @@ package com.di2it.auth_service.web;
 
 import com.di2it.auth_service.service.ChangePasswordService;
 import com.di2it.auth_service.service.DuplicateEmailException;
+import com.di2it.auth_service.application.PublicKeyInfo;
+import com.di2it.auth_service.service.GetPublicKeyService;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
 import com.di2it.auth_service.service.InvalidMfaCodeException;
@@ -17,6 +19,7 @@ import com.di2it.auth_service.web.dto.ChangePasswordRequest;
 import com.di2it.auth_service.web.dto.ChangePasswordResponse;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
+import com.di2it.auth_service.web.dto.PublicKeyResponse;
 import com.di2it.auth_service.web.dto.RefreshRequest;
 import com.di2it.auth_service.web.dto.RefreshResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
@@ -63,6 +66,9 @@ class AuthControllerTest {
     @Mock
     private ChangePasswordService changePasswordService;
 
+    @Mock
+    private GetPublicKeyService getPublicKeyService;
+
     @InjectMocks
     private AuthController authController;
 
@@ -88,6 +94,32 @@ class AuthControllerTest {
             .active(true)
             .firstAccess(true)
             .build();
+    }
+
+    @Nested
+    @DisplayName("getPublicKey")
+    class GetPublicKey {
+
+        @Test
+        @DisplayName("returns 200 with publicKey, keyId and algorithm when service returns info")
+        void success() {
+            String pem = "-----BEGIN PUBLIC KEY-----\nMIIBIjAN...\n-----END PUBLIC KEY-----";
+            when(getPublicKeyService.getPublicKey())
+                .thenReturn(PublicKeyInfo.builder()
+                    .publicKeyPem(pem)
+                    .keyId("tms-auth")
+                    .algorithm("RS256")
+                    .build());
+
+            ResponseEntity<PublicKeyResponse> result = authController.getPublicKey();
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getPublicKey()).isEqualTo(pem);
+            assertThat(result.getBody().getKeyId()).isEqualTo("tms-auth");
+            assertThat(result.getBody().getAlgorithm()).isEqualTo("RS256");
+            verify(getPublicKeyService).getPublicKey();
+        }
     }
 
     @Nested
