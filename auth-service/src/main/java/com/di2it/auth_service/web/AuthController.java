@@ -3,13 +3,18 @@ package com.di2it.auth_service.web;
 import com.di2it.auth_service.service.DuplicateEmailException;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
+import com.di2it.auth_service.service.InvalidMfaCodeException;
 import com.di2it.auth_service.service.LoginService;
 import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
+import com.di2it.auth_service.service.VerifyMfaResult;
+import com.di2it.auth_service.service.VerifyMfaService;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
+import com.di2it.auth_service.web.dto.VerifyMfaRequest;
+import com.di2it.auth_service.web.dto.VerifyMfaResponse;
 
 import jakarta.validation.Valid;
 
@@ -36,10 +41,16 @@ public class AuthController {
 
     private final UserRegistrationService userRegistrationService;
     private final LoginService loginService;
+    private final VerifyMfaService verifyMfaService;
 
-    public AuthController(UserRegistrationService userRegistrationService, LoginService loginService) {
+    public AuthController(
+        UserRegistrationService userRegistrationService,
+        LoginService loginService,
+        VerifyMfaService verifyMfaService
+    ) {
         this.userRegistrationService = userRegistrationService;
         this.loginService = loginService;
+        this.verifyMfaService = verifyMfaService;
     }
 
     /**
@@ -63,6 +74,32 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         loginService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(LoginResponse.builder().message(MFA_SENT_MESSAGE).build());
+    }
+
+    /**
+     * Verify MFA code from Redis, issue RS256 JWT and optional refresh token.
+     * POST /auth/verify-mfa
+     */
+    @PostMapping("/verify-mfa")
+    public ResponseEntity<VerifyMfaResponse> verifyMfa(@Valid @RequestBody VerifyMfaRequest request) {
+        boolean includeRefresh = request.getIncludeRefreshToken() == null || request.getIncludeRefreshToken();
+        VerifyMfaResult result = verifyMfaService.verify(
+            request.getEmail(),
+            request.getCode(),
+            includeRefresh
+        );
+        VerifyMfaResponse response = VerifyMfaResponse.builder()
+            .accessToken(result.getAccessToken())
+            .tokenType(VerifyMfaResponse.TOKEN_TYPE_BEARER)
+            .expiresIn(result.getExpiresInSeconds())
+            .refreshToken(result.getRefreshToken())
+            .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler(InvalidMfaCodeException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidMfaCode(InvalidMfaCodeException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(TenantNotFoundException.class)

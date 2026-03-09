@@ -3,13 +3,18 @@ package com.di2it.auth_service.web;
 import com.di2it.auth_service.service.DuplicateEmailException;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
+import com.di2it.auth_service.service.InvalidMfaCodeException;
 import com.di2it.auth_service.service.LoginService;
 import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
+import com.di2it.auth_service.service.VerifyMfaResult;
+import com.di2it.auth_service.service.VerifyMfaService;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
+import com.di2it.auth_service.web.dto.VerifyMfaRequest;
+import com.di2it.auth_service.web.dto.VerifyMfaResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,6 +43,9 @@ class AuthControllerTest {
 
     @Mock
     private LoginService loginService;
+
+    @Mock
+    private VerifyMfaService verifyMfaService;
 
     @InjectMocks
     private AuthController authController;
@@ -110,6 +118,56 @@ class AuthControllerTest {
     }
 
     @Nested
+    @DisplayName("verifyMfa")
+    class VerifyMfa {
+
+        @Test
+        @DisplayName("returns 200 with access token and refresh token when verification succeeds")
+        void success() {
+            VerifyMfaRequest request = VerifyMfaRequest.builder()
+                .email("user@example.com")
+                .code("123456")
+                .includeRefreshToken(true)
+                .build();
+            VerifyMfaResult serviceResult = VerifyMfaResult.builder()
+                .accessToken("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...")
+                .expiresInSeconds(900)
+                .refreshToken("opaque.refresh.token")
+                .build();
+            when(verifyMfaService.verify("user@example.com", "123456", true)).thenReturn(serviceResult);
+
+            ResponseEntity<VerifyMfaResponse> result = authController.verifyMfa(request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getAccessToken()).isEqualTo("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...");
+            assertThat(result.getBody().getTokenType()).isEqualTo("Bearer");
+            assertThat(result.getBody().getExpiresIn()).isEqualTo(900);
+            assertThat(result.getBody().getRefreshToken()).isEqualTo("opaque.refresh.token");
+            verify(verifyMfaService).verify("user@example.com", "123456", true);
+        }
+
+        @Test
+        @DisplayName("defaults includeRefreshToken to true when null")
+        void includeRefreshTokenDefaultsTrue() {
+            VerifyMfaRequest request = VerifyMfaRequest.builder()
+                .email("user@example.com")
+                .code("123456")
+                .build();
+            VerifyMfaResult serviceResult = VerifyMfaResult.builder()
+                .accessToken("jwt")
+                .expiresInSeconds(900)
+                .refreshToken("refresh")
+                .build();
+            when(verifyMfaService.verify("user@example.com", "123456", true)).thenReturn(serviceResult);
+
+            authController.verifyMfa(request);
+
+            verify(verifyMfaService).verify("user@example.com", "123456", true);
+        }
+    }
+
+    @Nested
     @DisplayName("exception handlers")
     class ExceptionHandlers {
 
@@ -162,6 +220,19 @@ class AuthControllerTest {
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
             assertThat(result.getBody()).containsKey("error");
             assertThat(result.getBody().get("error")).contains("try again");
+        }
+
+        @Test
+        @DisplayName("handleInvalidMfaCode returns 401 with error message")
+        void invalidMfaCode() {
+            InvalidMfaCodeException ex =
+                new InvalidMfaCodeException("Invalid or expired verification code.");
+
+            ResponseEntity<Map<String, String>> result =
+                authController.handleInvalidMfaCode(ex);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(result.getBody()).containsEntry("error", ex.getMessage());
         }
     }
 }

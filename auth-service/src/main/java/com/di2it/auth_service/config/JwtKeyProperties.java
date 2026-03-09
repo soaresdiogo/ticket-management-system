@@ -38,4 +38,14 @@ public class JwtKeyProperties {
      * Key id / alias used in JWT headers (optional).
      */
     private String keyId = "tms-auth";
+
+    /**
+     * Access token (JWT) validity in seconds. Default 15 minutes.
+     */
+    private long accessTokenExpirySeconds = 900;
+
+    /**
+     * Refresh token validity in seconds. Default 7 days.
+     */
+    private long refreshTokenExpirySeconds = 604800;
 }
