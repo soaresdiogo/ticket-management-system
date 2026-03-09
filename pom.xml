@@ -32,7 +32,7 @@
         <spring-ai.version>2.0.0-M2</spring-ai.version>
         <flyway.version>11.0.0</flyway.version>
         <postgresql.version>42.7.4</postgresql.version>
-        <lombok.version>1.18.34</lombok.version>
+        <lombok.version>1.18.40</lombok.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-clean-plugin.version>3.4.0</maven-clean-plugin.version>
         <maven-install-plugin.version>3.1.1</maven-install-plugin.version>

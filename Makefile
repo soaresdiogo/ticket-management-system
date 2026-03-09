@@ -20,15 +20,18 @@ help:
 	@echo ""
 	@echo "First time: cp .env.example .env && make docker-up && make install"
 
+# Use Maven wrapper so Maven does not need to be installed (./mvnw downloads it on first run)
+MVN := $(shell command -v mvn 2>/dev/null || echo ./mvnw)
+
 # Build all projects in cascade (order defined in root pom.xml)
 build install:
-	mvn -f pom.xml clean install -DskipTests
+	$(MVN) -f pom.xml clean install -DskipTests
 
 test:
-	mvn -f pom.xml test
+	$(MVN) -f pom.xml test
 
 clean:
-	mvn -f pom.xml clean
+	$(MVN) -f pom.xml clean
 
 docker-up:
 	docker compose up -d
