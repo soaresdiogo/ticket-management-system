@@ -16,7 +16,7 @@ A phased todo list for building the Ticket Management System. Database naming: u
 Auth is first because other services and the gateway depend on it for JWT validation.
 
 - [X] Configure Flyway and table structure (or rely on init-dbs.sql and use Flyway for future migrations only)
-- [ ] Implement entities and repositories (JPA + Lombok): `Tenant`, `User`, `MfaCode`, `RefreshToken`, `AuthAuditLog`
+- [X] Implement entities and repositories (JPA + Lombok): `Tenant`, `User`, `MfaCode`, `RefreshToken`, `AuthAuditLog`
 - [ ] Generate and store RSA key pair (public/private) for JWT signing (file or env)
 - [ ] User registration (created by office/tenant)
 - [ ] **POST /auth/login** — Validate credentials, generate MFA code, store in Redis with TTL, send via Resend
