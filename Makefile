@@ -1,0 +1,59 @@
+# TMS — One-command build, test, and run (for new developers)
+# Requires: JDK 25, Maven 3.x, Docker & docker-compose
+
+.PHONY: help build clean install test docker-up docker-down run-gateway run-auth run-ticket run-notification run-file env-check
+
+help:
+	@echo "TMS — Ticket Management System"
+	@echo ""
+	@echo "  make install      - Build all services in cascade (Maven reactor)"
+	@echo "  make test        - Run tests for all services"
+	@echo "  make clean       - Clean all service targets"
+	@echo "  make docker-up   - Start Postgres, Redis, Kafka (docker-compose)"
+	@echo "  make docker-down - Stop docker-compose"
+	@echo "  make run-gateway - Run API Gateway (sources .env if present)"
+	@echo "  make run-auth    - Run Auth Service"
+	@echo "  make run-ticket  - Run Ticket Service"
+	@echo "  make run-notification - Run Notification Service"
+	@echo "  make run-file    - Run File Service"
+	@echo "  make env-check   - Check .env exists (copy .env.example to .env)"
+	@echo ""
+	@echo "First time: cp .env.example .env && make docker-up && make install"
+
+# Build all projects in cascade (order defined in root pom.xml)
+build install:
+	mvn -f pom.xml clean install -DskipTests
+
+test:
+	mvn -f pom.xml test
+
+clean:
+	mvn -f pom.xml clean
+
+docker-up:
+	docker compose up -d
+	@echo "Waiting for Postgres..."
+	@until docker exec tms-postgres pg_isready -U tms -d tms 2>/dev/null; do sleep 2; done
+	@echo "Infrastructure ready."
+
+docker-down:
+	docker compose down
+
+env-check:
+	@if [ ! -f .env ]; then echo "Create .env from .env.example: cp .env.example .env"; exit 1; fi
+	@echo ".env found."
+
+run-gateway:
+	./scripts/run-with-env.sh api-gateway spring-boot:run
+
+run-auth:
+	./scripts/run-with-env.sh auth-service spring-boot:run
+
+run-ticket:
+	./scripts/run-with-env.sh ticket-service spring-boot:run
+
+run-notification:
+	./scripts/run-with-env.sh notification-service spring-boot:run
+
+run-file:
+	./scripts/run-with-env.sh file-service spring-boot:run

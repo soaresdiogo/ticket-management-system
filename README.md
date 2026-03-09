@@ -53,6 +53,7 @@ The system is composed of five Spring Boot services:
 - **Spring AI** 2.0.0-M2 (auth-service, Redis vector store)  
 - **PostgreSQL** (persistence)  
 - **Apache Kafka** (event-driven communication between ticket and notification services)  
+- **MinIO** (S3-compatible object storage for file-service)  
 - **Redis** (vector store for auth-service)  
 - **OAuth2** (JWT-based security across gateway and services)
 
@@ -60,43 +61,121 @@ The system is composed of five Spring Boot services:
 
 - JDK 25  
 - Maven 3.x  
-- PostgreSQL  
-- Apache Kafka  
-- Redis (for auth-service)
+- Docker & Docker Compose (for Postgres, Redis, Kafka, MinIO)
+
+## First-time setup (new developers)
+
+To guarantee the project builds and runs with one flow:
+
+```bash
+# 1. Copy env template and keep defaults (matches docker-compose)
+cp .env.example .env
+
+# 2. Start infrastructure (Postgres, Redis, Kafka, MinIO, Kafka UI)
+make docker-up
+# or: docker compose up -d
+
+# 3. Build all services in cascade (root Maven reactor)
+make install
+# or: mvn -f pom.xml clean install
+```
+
+Optional: run a single service with env loaded from `.env`:
+
+```bash
+./scripts/run-with-env.sh auth-service spring-boot:run
+# or: make run-auth
+```
+
+## Environment variables (Java vs Node .env)
+
+Unlike Node.js, **Spring Boot does not load a `.env` file by default**. It does two things that work well with Docker and scripts:
+
+1. **Environment variables override `application.properties`**  
+   Any env var is mapped to a property using *relaxed binding*:  
+   `SPRING_DATASOURCE_URL` → `spring.datasource.url`,  
+   `SPRING_DATA_REDIS_HOST` → `spring.data.redis.host`, etc.
+
+2. **Use a `.env` file by exporting it before running**  
+   Copy `.env.example` to `.env`, then either:
+   - **Source then run:** `set -a && source .env && set +a && ./mvnw spring-boot:run`
+   - **Use the helper script:** `./scripts/run-with-env.sh auth-service spring-boot:run`
+   - **Or use Make:** `make run-auth` (script sources `.env` automatically)
+
+Credentials in `.env.example` match `docker-compose.yml` (user `tms`, password `tms`, DBs `tms_auth`, `tms_tickets`, `tms_files`, `tms_notifications`). Adjust `.env` for local overrides; never commit `.env` (it is gitignored).
 
 ## Running the services
 
-Each service is a standalone Maven project. From the project root:
+**Option A — Make (recommended; loads `.env`):**
 
 ```bash
-# API Gateway
-cd api-gateway && ./mvnw spring-boot:run
-
-# Auth Service
-cd auth-service && ./mvnw spring-boot:run
-
-# Ticket Service
-cd ticket-service && ./mvnw spring-boot:run
-
-# Notification Service
-cd notification-service && ./mvnw spring-boot:run
-
-# File Service
-cd file-service && ./mvnw spring-boot:run
+make run-gateway
+make run-auth
+make run-ticket
+make run-notification
+make run-file
 ```
 
-Configure each service via `src/main/resources/application.properties` (or environment variables) for database, Kafka, Redis, and OAuth2 settings as needed.
+**Option B — Maven directly (set env or use `application.properties`):**
+
+```bash
+cd api-gateway && ./mvnw spring-boot:run
+cd auth-service && ./mvnw spring-boot:run
+# ... etc
+```
+
+**Option C — With env from `.env`:**
+
+```bash
+./scripts/run-with-env.sh auth-service spring-boot:run
+```
+
+Configure each service via `src/main/resources/application.properties` or environment variables (and `.env` when using the script) for database, Kafka, Redis, MinIO, and OAuth2.
+
+**Infrastructure URLs (after `docker compose up -d`):**
+
+| Service     | URL / Endpoint              | Notes                    |
+|------------|-----------------------------|--------------------------|
+| PostgreSQL | `localhost:5432`            | DB: `tms`                |
+| Redis      | `localhost:6379`           |                          |
+| Kafka      | `localhost:9092`            | Bootstrap for apps       |
+| Kafka UI   | http://localhost:8090       | Web UI for topics/msgs   |
+| MinIO API  | http://localhost:9000       | S3-compatible API        |
+| MinIO Console | http://localhost:9001    | Web UI (user: `tms`, pass: `tms12345`) |
+
+## Build and update all projects (cascade)
+
+From the repo root:
+
+```bash
+# Build everything (reactor order: api-gateway → auth → ticket → notification → file)
+mvn -f pom.xml clean install
+
+# Or use Make
+make install
+make test
+make clean
+```
 
 ## Project structure
 
 ```
 ticket-management-system/
+├── pom.xml                # Root Maven reactor (build all in cascade)
+├── .env.example           # Env template (copy to .env; matches docker-compose)
+├── Makefile               # build, docker-up, run-* targets
+├── scripts/
+│   └── run-with-env.sh    # Run a service with .env loaded
 ├── api-gateway/           # Spring Cloud Gateway
 ├── auth-service/          # Authentication & user management
 ├── ticket-service/        # Ticket domain
 ├── notification-service/  # Notifications & WebSocket
 ├── file-service/          # File storage
-├── docker-compose.yml
+├── docker-compose.yml     # Postgres, Redis, Kafka, MinIO, Kafka UI
+├── docker/
+│   └── init-dbs.sql       # DBs: tms_auth, tms_tickets, tms_files, tms_notifications
+├── docs/
+│   └── DEVELOPMENT_PLAN.md # Phased development todo list
 ├── LICENSE
 └── README.md
 ```
