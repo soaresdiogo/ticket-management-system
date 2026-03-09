@@ -1,5 +1,6 @@
 package com.di2it.auth_service.web;
 
+import com.di2it.auth_service.service.ChangePasswordService;
 import com.di2it.auth_service.service.DuplicateEmailException;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
@@ -12,6 +13,8 @@ import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
 import com.di2it.auth_service.service.VerifyMfaResult;
 import com.di2it.auth_service.service.VerifyMfaService;
+import com.di2it.auth_service.web.dto.ChangePasswordRequest;
+import com.di2it.auth_service.web.dto.ChangePasswordResponse;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
 import com.di2it.auth_service.web.dto.RefreshRequest;
@@ -20,6 +23,7 @@ import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
 import com.di2it.auth_service.web.dto.VerifyMfaRequest;
 import com.di2it.auth_service.web.dto.VerifyMfaResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,6 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -54,6 +59,9 @@ class AuthControllerTest {
 
     @Mock
     private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private ChangePasswordService changePasswordService;
 
     @InjectMocks
     private AuthController authController;
@@ -201,6 +209,35 @@ class AuthControllerTest {
             assertThat(result.getBody().getExpiresIn()).isEqualTo(900);
             assertThat(result.getBody().getRefreshToken()).isEqualTo("new.opaque.refresh.token");
             verify(refreshTokenService).refresh("opaque.refresh.token");
+        }
+    }
+
+    @Nested
+    @DisplayName("changePassword")
+    class ChangePassword {
+
+        @Test
+        @DisplayName("returns 200 with message when change password succeeds")
+        void success() {
+            UUID userId = UUID.randomUUID();
+            Jwt jwt = mock(Jwt.class);
+            when(jwt.getSubject()).thenReturn(userId.toString());
+            ChangePasswordRequest request = ChangePasswordRequest.builder()
+                .currentPassword("OldP@ss1")
+                .newPassword("NewP@ss2")
+                .build();
+
+            ResponseEntity<ChangePasswordResponse> result =
+                authController.changePassword(jwt, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getMessage()).isEqualTo("Password changed successfully.");
+            verify(changePasswordService).changePassword(
+                eq(userId),
+                eq("OldP@ss1"),
+                eq("NewP@ss2")
+            );
         }
     }
 

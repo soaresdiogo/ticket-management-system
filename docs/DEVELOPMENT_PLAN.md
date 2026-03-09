@@ -22,8 +22,15 @@ Auth is first because other services and the gateway depend on it for JWT valida
 - [X] **POST /auth/login** — Validate credentials, generate MFA code, store in Redis with TTL, send via Resend
 - [X] **POST /auth/verify-mfa** — Validate code from Redis, issue RS256 JWT and optional refresh token
 - [X] **POST /auth/refresh** — Refresh token flow
-- [ ] **POST /auth/change-password** — Change password (and set `first_access = false` if applicable)
+- [X] **POST /auth/change-password** — Change password (and set `first_access = false` if applicable)
 - [ ] **GET /auth/public-key** — Expose public key for gateway and other services to validate JWT
+- [ ] Add Swagger
+      - [ ] Add springdoc-openapi dependency
+      - [ ] Create SwaggerConfig with JWT bearer scheme
+      - [ ] Annotate AuthController with @Tag e @Operation
+      - [ ] Annotate DTOs/Records with @Schema
+      - [ ] Configure springdoc in application.yml
+      - [ ] Verify Swagger UI at /swagger-ui.html
 - [ ] Test with Postman/Insomnia (login → MFA → JWT → refresh → change-password)
 
 ---

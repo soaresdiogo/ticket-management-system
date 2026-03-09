@@ -11,7 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Security configuration for auth-service.
- * Permits registration and (later) login/MFA/refresh; JWT validation for other endpoints can be added later.
+ * Public endpoints: registration, login, MFA, refresh. JWT required for change-password.
  */
 @Configuration
 @EnableWebSecurity
@@ -28,8 +28,10 @@ public class SecurityConfig {
                 .requestMatchers("/auth/login").permitAll()
                 .requestMatchers("/auth/verify-mfa").permitAll()
                 .requestMatchers("/auth/refresh").permitAll()
+                .requestMatchers("/auth/change-password").authenticated()
                 .requestMatchers("/actuator/health").permitAll()
-                .anyRequest().authenticated());
+                .anyRequest().authenticated())
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
         return http.build();
     }
 

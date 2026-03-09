@@ -1,5 +1,6 @@
 package com.di2it.auth_service.web;
 
+import com.di2it.auth_service.service.ChangePasswordService;
 import com.di2it.auth_service.service.DuplicateEmailException;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
@@ -11,6 +12,8 @@ import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
 import com.di2it.auth_service.service.VerifyMfaResult;
 import com.di2it.auth_service.service.VerifyMfaService;
+import com.di2it.auth_service.web.dto.ChangePasswordRequest;
+import com.di2it.auth_service.web.dto.ChangePasswordResponse;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
 import com.di2it.auth_service.web.dto.RefreshRequest;
@@ -25,6 +28,8 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,21 +49,26 @@ public class AuthController {
 
     private static final String MFA_SENT_MESSAGE = "If an account exists, a verification code has been sent to your email.";
 
+    private static final String PASSWORD_CHANGED_MESSAGE = "Password changed successfully.";
+
     private final UserRegistrationService userRegistrationService;
     private final LoginService loginService;
     private final VerifyMfaService verifyMfaService;
     private final RefreshTokenService refreshTokenService;
+    private final ChangePasswordService changePasswordService;
 
     public AuthController(
         UserRegistrationService userRegistrationService,
         LoginService loginService,
         VerifyMfaService verifyMfaService,
-        RefreshTokenService refreshTokenService
+        RefreshTokenService refreshTokenService,
+        ChangePasswordService changePasswordService
     ) {
         this.userRegistrationService = userRegistrationService;
         this.loginService = loginService;
         this.verifyMfaService = verifyMfaService;
         this.refreshTokenService = refreshTokenService;
+        this.changePasswordService = changePasswordService;
     }
 
     /**
@@ -115,6 +125,26 @@ public class AuthController {
             refreshTokenService.refresh(request.getRefreshToken())
         );
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Change password for the authenticated user (JWT required). Sets first_access = false.
+     * POST /auth/change-password
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<ChangePasswordResponse> changePassword(
+        @AuthenticationPrincipal Jwt jwt,
+        @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        changePasswordService.changePassword(
+            userId,
+            request.getCurrentPassword(),
+            request.getNewPassword()
+        );
+        return ResponseEntity.ok(
+            ChangePasswordResponse.builder().message(PASSWORD_CHANGED_MESSAGE).build()
+        );
     }
 
     @ExceptionHandler(InvalidMfaCodeException.class)
