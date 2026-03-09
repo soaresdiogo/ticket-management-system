@@ -1,28 +1,25 @@
 package com.di2it.auth_service.web.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Schema(description = "JWT public key for validation (RS256)")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PublicKeyResponse {
 
-    /**
-     * Public key in PEM format (X.509) for JWT validation.
-     */
+    @Schema(description = "Public key in PEM format (X.509) for JWT validation")
     private String publicKey;
 
-    /**
-     * Key identifier (e.g. for key rotation).
-     */
+    @Schema(description = "Key identifier (e.g. for key rotation)")
     private String keyId;
 
-    /**
-     * JWT signing algorithm (e.g. RS256).
-     */
+    @Schema(description = "JWT signing algorithm (e.g. RS256)")
     private String algorithm;
 }
