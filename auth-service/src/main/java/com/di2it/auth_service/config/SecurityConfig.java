@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/tenants/*/users").permitAll()
                 .requestMatchers("/auth/login").permitAll()
                 .requestMatchers("/auth/verify-mfa").permitAll()
+                .requestMatchers("/auth/refresh").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated());
         return http.build();

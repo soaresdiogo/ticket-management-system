@@ -21,7 +21,7 @@ Auth is first because other services and the gateway depend on it for JWT valida
 - [X] User registration (created by office/tenant)
 - [X] **POST /auth/login** — Validate credentials, generate MFA code, store in Redis with TTL, send via Resend
 - [X] **POST /auth/verify-mfa** — Validate code from Redis, issue RS256 JWT and optional refresh token
-- [ ] **POST /auth/refresh** — Refresh token flow
+- [X] **POST /auth/refresh** — Refresh token flow
 - [ ] **POST /auth/change-password** — Change password (and set `first_access = false` if applicable)
 - [ ] **GET /auth/public-key** — Expose public key for gateway and other services to validate JWT
 - [ ] Test with Postman/Insomnia (login → MFA → JWT → refresh → change-password)

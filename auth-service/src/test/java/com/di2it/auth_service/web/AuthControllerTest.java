@@ -4,13 +4,18 @@ import com.di2it.auth_service.service.DuplicateEmailException;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
 import com.di2it.auth_service.service.InvalidMfaCodeException;
+import com.di2it.auth_service.service.InvalidRefreshTokenException;
 import com.di2it.auth_service.service.LoginService;
+import com.di2it.auth_service.service.RefreshResult;
+import com.di2it.auth_service.service.RefreshTokenService;
 import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
 import com.di2it.auth_service.service.VerifyMfaResult;
 import com.di2it.auth_service.service.VerifyMfaService;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
+import com.di2it.auth_service.web.dto.RefreshRequest;
+import com.di2it.auth_service.web.dto.RefreshResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
 import com.di2it.auth_service.web.dto.VerifyMfaRequest;
@@ -46,6 +51,9 @@ class AuthControllerTest {
 
     @Mock
     private VerifyMfaService verifyMfaService;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private AuthController authController;
@@ -168,6 +176,35 @@ class AuthControllerTest {
     }
 
     @Nested
+    @DisplayName("refresh")
+    class Refresh {
+
+        @Test
+        @DisplayName("returns 200 with access and refresh token when refresh succeeds")
+        void success() {
+            RefreshRequest request = RefreshRequest.builder()
+                .refreshToken("opaque.refresh.token")
+                .build();
+            RefreshResult serviceResult = RefreshResult.builder()
+                .accessToken("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...")
+                .expiresInSeconds(900)
+                .refreshToken("new.opaque.refresh.token")
+                .build();
+            when(refreshTokenService.refresh("opaque.refresh.token")).thenReturn(serviceResult);
+
+            ResponseEntity<RefreshResponse> result = authController.refresh(request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getAccessToken()).isEqualTo("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...");
+            assertThat(result.getBody().getTokenType()).isEqualTo("Bearer");
+            assertThat(result.getBody().getExpiresIn()).isEqualTo(900);
+            assertThat(result.getBody().getRefreshToken()).isEqualTo("new.opaque.refresh.token");
+            verify(refreshTokenService).refresh("opaque.refresh.token");
+        }
+    }
+
+    @Nested
     @DisplayName("exception handlers")
     class ExceptionHandlers {
 
@@ -230,6 +267,19 @@ class AuthControllerTest {
 
             ResponseEntity<Map<String, String>> result =
                 authController.handleInvalidMfaCode(ex);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(result.getBody()).containsEntry("error", ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("handleInvalidRefreshToken returns 401 with error message")
+        void invalidRefreshToken() {
+            InvalidRefreshTokenException ex =
+                new InvalidRefreshTokenException("Invalid or expired refresh token.");
+
+            ResponseEntity<Map<String, String>> result =
+                authController.handleInvalidRefreshToken(ex);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
             assertThat(result.getBody()).containsEntry("error", ex.getMessage());

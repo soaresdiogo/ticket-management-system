@@ -4,17 +4,22 @@ import com.di2it.auth_service.service.DuplicateEmailException;
 import com.di2it.auth_service.service.EmailDeliveryException;
 import com.di2it.auth_service.service.InvalidCredentialsException;
 import com.di2it.auth_service.service.InvalidMfaCodeException;
+import com.di2it.auth_service.service.InvalidRefreshTokenException;
 import com.di2it.auth_service.service.LoginService;
+import com.di2it.auth_service.service.RefreshTokenService;
 import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
 import com.di2it.auth_service.service.VerifyMfaResult;
 import com.di2it.auth_service.service.VerifyMfaService;
 import com.di2it.auth_service.web.dto.LoginRequest;
 import com.di2it.auth_service.web.dto.LoginResponse;
+import com.di2it.auth_service.web.dto.RefreshRequest;
+import com.di2it.auth_service.web.dto.RefreshResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
 import com.di2it.auth_service.web.dto.VerifyMfaRequest;
 import com.di2it.auth_service.web.dto.VerifyMfaResponse;
+import com.di2it.auth_service.web.mapper.RefreshResponseMapper;
 
 import jakarta.validation.Valid;
 
@@ -42,15 +47,18 @@ public class AuthController {
     private final UserRegistrationService userRegistrationService;
     private final LoginService loginService;
     private final VerifyMfaService verifyMfaService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthController(
         UserRegistrationService userRegistrationService,
         LoginService loginService,
-        VerifyMfaService verifyMfaService
+        VerifyMfaService verifyMfaService,
+        RefreshTokenService refreshTokenService
     ) {
         this.userRegistrationService = userRegistrationService;
         this.loginService = loginService;
         this.verifyMfaService = verifyMfaService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     /**
@@ -97,8 +105,25 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Refresh: validate refresh token, issue new access token and new refresh token (rotation).
+     * POST /auth/refresh
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        RefreshResponse response = RefreshResponseMapper.toResponse(
+            refreshTokenService.refresh(request.getRefreshToken())
+        );
+        return ResponseEntity.ok(response);
+    }
+
     @ExceptionHandler(InvalidMfaCodeException.class)
     public ResponseEntity<Map<String, String>> handleInvalidMfaCode(InvalidMfaCodeException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
     }
 
