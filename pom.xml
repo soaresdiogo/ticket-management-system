@@ -33,6 +33,7 @@
         <flyway.version>11.0.0</flyway.version>
         <postgresql.version>42.7.4</postgresql.version>
         <lombok.version>1.18.40</lombok.version>
+        <jjwt.version>0.12.6</jjwt.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-clean-plugin.version>3.4.0</maven-clean-plugin.version>
         <maven-install-plugin.version>3.1.1</maven-install-plugin.version>
@@ -70,6 +71,23 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
