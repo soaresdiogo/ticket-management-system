@@ -75,7 +75,13 @@ cp .env.example .env
 make docker-up
 # or: docker compose up -d
 
-# 3. Build all services in cascade (root Maven reactor)
+# 3. (Optional) Create DBs and schema if they don't exist
+#    Postgres runs docker/init-dbs.sql automatically on first start (empty volume).
+#    If you reuse an existing volume or need to re-run the init script:
+make init-dbs
+# or: docker exec -i tms-postgres psql -U tms -d tms < docker/init-dbs.sql
+
+# 4. Build all services in cascade (root Maven reactor)
 make install
 # or: mvn -f pom.xml clean install
 ```
@@ -136,7 +142,7 @@ Configure each service via `src/main/resources/application.properties` or enviro
 
 | Service     | URL / Endpoint              | Notes                    |
 |------------|-----------------------------|--------------------------|
-| PostgreSQL | `localhost:5432`            | DB: `tms`                |
+| PostgreSQL | `localhost:5432`            | Default DB: `tms` (empty). App tables live in: `tms_auth`, `tms_tickets`, `tms_files`, `tms_notifications` |
 | Redis      | `localhost:6379`           |                          |
 | Kafka      | `localhost:9092`            | Bootstrap for apps       |
 | Kafka UI   | http://localhost:8090       | Web UI for topics/msgs   |
