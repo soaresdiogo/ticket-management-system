@@ -1,12 +1,17 @@
-Business Source License 1.1
+# Business Source License 1.1 – DI2IT, Unipessoal Lda
 
-Copyright (c) 2026 Di2iT, Unipessoal Lda
+Copyright (c) 2026 DI2IT, Unipessoal Lda
 
-Permission is granted to use, copy, modify, and distribute this software 
-for non-commercial purposes.
+Permission is granted to use, copy, modify, and distribute this software **for non-commercial purposes only**, under the following conditions:
 
-You may not offer this software as a competing service or commercial product 
-without explicit permission from the author.
+1. The source code must remain open and available under this license.
+2. All copies and derivative works must retain this copyright notice and attribute the original author (DI2IT, Unipessoal Lda).
+3. You may **not rename this project, sell it, or offer it as a competing product or service** without explicit written permission from the copyright holder.
 
-Change Date: 2029-01-01
-Change License: Apache 2.0
+**Important definitions:**
+
+- **Non-commercial use**: any use that does **not generate direct or indirect revenue**, and is not part of a paid product or service.
+- **Competing product or service**: any software or service that **offers similar functionality or substitutes this software in the market**.
+
+**Permanent license:**  
+This license is permanent. This software **will always remain under this license** and will not change to another license in the future.

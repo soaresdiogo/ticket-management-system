@@ -4,6 +4,37 @@ A microservices-based ticket management system built with Spring Boot 4 and Java
 
 ## Architecture
 
+```
+┌─────────────────────────────────────────────────────┐
+│                    Angular Frontend                  │
+└──────────────────────┬──────────────────────────────┘
+                       │ HTTP/WebSocket
+┌──────────────────────▼──────────────────────────────┐
+│                   API Gateway                        │
+│            (Spring Cloud Gateway)                    │
+│         Routing + Rate limiting + Auth            │
+└────┬──────────────┬──────────────┬───────────────────┘
+     │              │              │
+┌────▼────┐  ┌──────▼─────┐  ┌────▼──────────┐
+│  Auth   │  │  Tickets   │  │   Files       │
+│ Service │  │  Service   │  │   Service     │
+│         │  │            │  │               │
+│ JWT/MFA │  │ CRUD       │  │ MinIO upload/ │
+│ Resend  │  │ Status     │  │ download      │
+│ Redis   │  │ Postgres   │  │ Postgres      │
+└─────────┘  └──────┬─────┘  └───────────────┘
+                    │ Event publishing
+             ┌──────▼──────┐
+             │    Kafka    │
+             └──────┬──────┘
+                    │ Consumer
+             ┌──────▼──────────────┐
+             │ Notification Service│
+             │ Resend (email)      │
+             │ WebSocket push      │
+             └─────────────────────┘
+```
+
 The system is composed of five Spring Boot services:
 
 | Service | Description | Key technologies |
