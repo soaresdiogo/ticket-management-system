@@ -1,8 +1,13 @@
 package com.di2it.auth_service.web;
 
 import com.di2it.auth_service.service.DuplicateEmailException;
+import com.di2it.auth_service.service.EmailDeliveryException;
+import com.di2it.auth_service.service.InvalidCredentialsException;
+import com.di2it.auth_service.service.LoginService;
 import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
+import com.di2it.auth_service.web.dto.LoginRequest;
+import com.di2it.auth_service.web.dto.LoginResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
 
@@ -27,10 +32,14 @@ import java.util.UUID;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final UserRegistrationService userRegistrationService;
+    private static final String MFA_SENT_MESSAGE = "If an account exists, a verification code has been sent to your email.";
 
-    public AuthController(UserRegistrationService userRegistrationService) {
+    private final UserRegistrationService userRegistrationService;
+    private final LoginService loginService;
+
+    public AuthController(UserRegistrationService userRegistrationService, LoginService loginService) {
         this.userRegistrationService = userRegistrationService;
+        this.loginService = loginService;
     }
 
     /**
@@ -46,6 +55,16 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Login: validate credentials, generate MFA code, store in Redis with TTL, send via Resend.
+     * POST /auth/login
+     */
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        loginService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(LoginResponse.builder().message(MFA_SENT_MESSAGE).build());
+    }
+
     @ExceptionHandler(TenantNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleTenantNotFound(TenantNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
@@ -54,5 +73,16 @@ public class AuthController {
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateEmail(DuplicateEmailException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailDeliveryException.class)
+    public ResponseEntity<Map<String, String>> handleEmailDelivery(EmailDeliveryException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(Map.of("error", "Unable to send verification email. Please try again later."));
     }
 }

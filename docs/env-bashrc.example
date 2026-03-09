@@ -1,0 +1,32 @@
+# =============================================================================
+# TMS — Environment variables for .bashrc (or .zshrc)
+# =============================================================================
+# Add to your shell profile: source /path/to/ticket-management-system/docs/env-bashrc.example
+# Or copy the exports below into ~/.bashrc or ~/.zshrc
+# =============================================================================
+
+# --- PostgreSQL (shared by all services; each service uses its own DB name by default) ---
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_USER=tms
+export DB_PASSWORD=tms
+# Optional: override per service (defaults are tms_auth, tms_tickets, tms_notifications, tms_files)
+# export DB_NAME=tms_auth
+
+# --- Auth Service: Redis (MFA code storage) ---
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+
+# --- Auth Service: Resend (MFA email) ---
+export RESEND_API_KEY=
+export RESEND_FROM_EMAIL="TMS Auth <noreply@example.com>"
+
+# --- Auth Service: JWT (optional; leave empty to use key files or auto-generate) ---
+# export AUTH_JWT_PRIVATE_KEY_PATH=
+# export AUTH_JWT_PUBLIC_KEY_PATH=
+# export AUTH_JWT_KEY_DIR=keys
+# export AUTH_JWT_KEY_ID=tms-auth
+
+# --- Auth Service: MFA (optional; defaults: 6 digits, 300s TTL) ---
+# export AUTH_MFA_CODE_LENGTH=6
+# export AUTH_MFA_TTL_SECONDS=300

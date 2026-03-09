@@ -1,8 +1,13 @@
 package com.di2it.auth_service.web;
 
 import com.di2it.auth_service.service.DuplicateEmailException;
+import com.di2it.auth_service.service.EmailDeliveryException;
+import com.di2it.auth_service.service.InvalidCredentialsException;
+import com.di2it.auth_service.service.LoginService;
 import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
+import com.di2it.auth_service.web.dto.LoginRequest;
+import com.di2it.auth_service.web.dto.LoginResponse;
 import com.di2it.auth_service.web.dto.RegisterUserRequest;
 import com.di2it.auth_service.web.dto.RegisterUserResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +35,9 @@ class AuthControllerTest {
 
     @Mock
     private UserRegistrationService userRegistrationService;
+
+    @Mock
+    private LoginService loginService;
 
     @InjectMocks
     private AuthController authController;
@@ -81,6 +89,27 @@ class AuthControllerTest {
     }
 
     @Nested
+    @DisplayName("login")
+    class Login {
+
+        @Test
+        @DisplayName("returns 200 and message when login succeeds")
+        void success() {
+            LoginRequest request = LoginRequest.builder()
+                .email("user@example.com")
+                .password("SecureP@ss1")
+                .build();
+
+            ResponseEntity<LoginResponse> result = authController.login(request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getMessage()).contains("verification code");
+            verify(loginService).login("user@example.com", "SecureP@ss1");
+        }
+    }
+
+    @Nested
     @DisplayName("exception handlers")
     class ExceptionHandlers {
 
@@ -108,6 +137,31 @@ class AuthControllerTest {
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
             assertThat(result.getBody()).containsEntry("error", ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("handleInvalidCredentials returns 401 with error message")
+        void invalidCredentials() {
+            InvalidCredentialsException ex = new InvalidCredentialsException("Invalid credentials");
+
+            ResponseEntity<Map<String, String>> result =
+                authController.handleInvalidCredentials(ex);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(result.getBody()).containsEntry("error", ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("handleEmailDelivery returns 503 with safe message")
+        void emailDeliveryFailure() {
+            EmailDeliveryException ex = new EmailDeliveryException("Resend API error");
+
+            ResponseEntity<Map<String, String>> result =
+                authController.handleEmailDelivery(ex);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+            assertThat(result.getBody()).containsKey("error");
+            assertThat(result.getBody().get("error")).contains("try again");
         }
     }
 }
