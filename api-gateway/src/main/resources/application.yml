@@ -2,6 +2,11 @@
 # Single entry point; routes are configured per backend service.
 # Override service URLs via env (e.g. AUTH_SERVICE_URL=http://auth-service:8080 for Docker).
 
+auth:
+  service:
+    # Base URL of auth-service (used to fetch JWT public key for validation)
+    url: ${AUTH_SERVICE_URL:http://localhost:8081}
+
 spring:
   application:
     name: api-gateway
