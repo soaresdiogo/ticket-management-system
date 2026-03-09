@@ -41,7 +41,7 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 - [X] Configure routes for each service in `application.yml`
 - [X] JWT validation filter using auth-service public key
-- [ ] Propagate headers (e.g. `X-User-Id`, `X-User-Role`, `X-Tenant-Id`) to downstream services
+- [X] Propagate headers (e.g. `X-User-Id`, `X-User-Role`, `X-Tenant-Id`) to downstream services
 - [ ] Configure CORS for the Angular app
 - [ ] Test authenticated vs unauthenticated routes
 
