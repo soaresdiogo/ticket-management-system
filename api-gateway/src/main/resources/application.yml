@@ -7,11 +7,23 @@ auth:
     # Base URL of auth-service (used to fetch JWT public key for validation)
     url: ${AUTH_SERVICE_URL:http://localhost:8081}
 
+# CORS: allowed origins for the Angular app. Override via gateway.cors.allowed-origins (list) or env.
+gateway:
+  cors:
+    allowed-origins:
+      - ${CORS_ALLOWED_ORIGIN:http://localhost:4200}
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age-seconds: 3600
+
 spring:
   application:
     name: api-gateway
   cloud:
     gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
       server:
         webflux:
           routes:
