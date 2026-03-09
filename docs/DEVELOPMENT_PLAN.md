@@ -6,8 +6,8 @@ A phased todo list for building the Ticket Management System. Database naming: u
 
 ## Phase 0 — Infrastructure and parent POM (1–2 days)
 
-- [ ] Create `init-dbs.sql` with schemas per service (databases + full DDL, one file under `docker/`)
-- [ ] Introduce Parent POM with centralised versions (dependencyManagement + pluginManagement in root `pom.xml`; modules use root as parent)
+- [X] Create `init-dbs.sql` with schemas per service (databases + full DDL, one file under `docker/`)
+- [X] Introduce Parent POM with centralised versions (dependencyManagement + pluginManagement in root `pom.xml`; modules use root as parent)
 
 ---
 
@@ -15,7 +15,7 @@ A phased todo list for building the Ticket Management System. Database naming: u
 
 Auth is first because other services and the gateway depend on it for JWT validation.
 
-- [ ] Configure Flyway and table structure (or rely on init-dbs.sql and use Flyway for future migrations only)
+- [X] Configure Flyway and table structure (or rely on init-dbs.sql and use Flyway for future migrations only)
 - [ ] Implement entities and repositories (JPA + Lombok): `Tenant`, `User`, `MfaCode`, `RefreshToken`, `AuthAuditLog`
 - [ ] Generate and store RSA key pair (public/private) for JWT signing (file or env)
 - [ ] User registration (created by office/tenant)
