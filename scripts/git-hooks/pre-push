@@ -1,0 +1,8 @@
+#!/bin/sh
+# Pre-push hook: run Maven verify (build + tests + linters) before allowing push.
+# Installed by: make install-hooks or ./scripts/setup-hooks.sh
+# Runs from repo root so ./mvnw works regardless of current directory.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+echo "Running Maven verify before push..."
+./mvnw verify --no-transfer-progress -DskipTests=false

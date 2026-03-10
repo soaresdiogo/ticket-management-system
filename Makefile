@@ -1,16 +1,17 @@
 # TMS — One-command build, test, and run (for new developers)
 # Requires: JDK 25, Maven 3.x, Docker & docker-compose
 
-.PHONY: help build clean install test lint docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file env-check install-hooks
+.PHONY: help build clean install test lint ci docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file env-check install-hooks
 
 help:
 	@echo "TMS — Ticket Management System"
 	@echo ""
 	@echo "  make install      - Build all services in cascade (Maven reactor)"
 	@echo "  make test        - Run tests for all services"
+	@echo "  make ci          - Same as GitHub Actions: verify + tests + linters (simulate pipeline)"
 	@echo "  make lint        - Run Checkstyle, PMD, and SpotBugs (no tests)"
 	@echo "  make clean       - Clean all service targets"
-	@echo "  make install-hooks - Install git pre-commit hook (runs 'make lint' before each commit)"
+	@echo "  make install-hooks - Install git hooks: pre-commit (make lint), pre-push (mvn verify)"
 	@echo "  make docker-up   - Start Postgres, Redis, Kafka (docker-compose)"
 	@echo "  make docker-down - Stop docker-compose"
 	@echo "  make init-dbs    - Run docker/init-dbs.sql (create DBs + schema; use if not first start)"
@@ -33,6 +34,11 @@ build install:
 test:
 	$(MVN) -f pom.xml test
 
+# Same command as GitHub Actions CI: verify (build + test + Checkstyle + PMD + SpotBugs).
+# Run this before pushing to catch pipeline failures. Requires Docker for Testcontainers.
+ci:
+	$(MVN) -f pom.xml verify --no-transfer-progress -DskipTests=false
+
 # Checkstyle + PMD + SpotBugs only (fast, for pre-commit). Full verify runs these + tests.
 lint:
 	$(MVN) -f pom.xml checkstyle:check pmd:check spotbugs:check
@@ -40,12 +46,14 @@ lint:
 clean:
 	$(MVN) -f pom.xml clean
 
-# Install git pre-commit hook so "make lint" runs automatically before each commit (like Husky in Node).
+# Install git hooks: pre-commit (lint) and pre-push (full verify before push).
 install-hooks:
 	@mkdir -p .git/hooks
 	@cp scripts/git-hooks/pre-commit .git/hooks/pre-commit
 	@chmod +x .git/hooks/pre-commit
-	@echo "Pre-commit hook installed. 'make lint' (Checkstyle, PMD, SpotBugs) will run before each commit."
+	@cp scripts/git-hooks/pre-push .git/hooks/pre-push
+	@chmod +x .git/hooks/pre-push
+	@echo "Hooks installed: pre-commit → make lint; pre-push → ./mvnw verify"
 
 docker-up:
 	docker compose up -d

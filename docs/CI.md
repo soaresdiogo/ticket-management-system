@@ -23,6 +23,46 @@ Before pushing, run the same checks locally:
 make lint
 ```
 
+## Simulate the pipeline before pushing
+
+You can run the **exact same steps** as GitHub Actions locally so you catch failures before pushing.
+
+### Option 1: Same Maven command as CI (recommended)
+
+CI runs `verify` with tests enabled. Use the same command (Docker must be running for Testcontainers in `ticket-service` and `auth-service`):
+
+```bash
+./mvnw verify --no-transfer-progress -DskipTests=false
+```
+
+To mirror CI even closer (clean + same command):
+
+```bash
+./mvnw clean verify --no-transfer-progress -DskipTests=false
+```
+
+If this passes locally, the pipeline will usually pass on GitHub (same JDK 25, Maven, and tests).
+
+### Option 2: Run the workflow in a container with act
+
+[act](https://github.com/nektos/act) runs your `.github/workflows` in Docker, simulating the real runner.
+
+1. Install act (e.g. Homebrew on macOS: `brew install act`).
+2. From the repo root:
+
+```bash
+# List workflows and events
+act -l
+
+# Simulate push to main (runs the CI job)
+act push
+
+# Simulate a pull_request (same trigger as opening a PR)
+act pull_request
+```
+
+The first run will pull the GitHub Actions runner image and may take a few minutes. Ensure Docker is running and has enough memory (e.g. 4GB+); Testcontainers will start Postgres/Kafka/Redis inside the same run.
+
 ### Manual linter commands
 
 | Tool       | Command                    | Config |
