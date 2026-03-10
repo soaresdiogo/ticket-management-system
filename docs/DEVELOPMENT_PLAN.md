@@ -49,7 +49,7 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 ## Phase 3 — Ticket Service (4–5 days)
 
-- [ ] Flyway + tables (or align with init-dbs.sql); entities and repositories: `Ticket`, `TicketStatusHistory`, `TicketComment`
+- [X] Flyway + tables (or align with init-dbs.sql); entities and repositories: `Ticket`, `TicketStatusHistory`, `TicketComment`
 - [ ] **POST /tickets** — Create ticket
 - [ ] **GET /tickets** — List tickets for current user (client; filter by JWT `userId`)
 - [ ] **GET /tickets/all** — List all tickets (role ACCOUNTANT)
