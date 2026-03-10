@@ -1,10 +1,14 @@
 package com.di2it.ticket_service.web;
 
+import com.di2it.ticket_service.application.usecase.AddCommentUseCase;
 import com.di2it.ticket_service.application.usecase.ChangeTicketStatusUseCase;
 import com.di2it.ticket_service.application.usecase.CreateTicketUseCase;
 import com.di2it.ticket_service.application.usecase.ListAllTicketsUseCase;
 import com.di2it.ticket_service.application.usecase.ListTicketsUseCase;
 import com.di2it.ticket_service.domain.entity.Ticket;
+import com.di2it.ticket_service.domain.entity.TicketComment;
+import com.di2it.ticket_service.web.dto.AddCommentRequest;
+import com.di2it.ticket_service.web.dto.AddCommentResponse;
 import com.di2it.ticket_service.web.dto.ChangeTicketStatusRequest;
 import com.di2it.ticket_service.web.dto.ChangeTicketStatusResponse;
 import com.di2it.ticket_service.web.dto.CreateTicketRequest;
@@ -51,6 +55,9 @@ class TicketControllerTest {
 
     @Mock
     private ChangeTicketStatusUseCase changeTicketStatusUseCase;
+
+    @Mock
+    private AddCommentUseCase addCommentUseCase;
 
     @InjectMocks
     private TicketController ticketController;
@@ -274,6 +281,60 @@ class TicketControllerTest {
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             assertThat(result.getBody()).isNull();
             verify(changeTicketStatusUseCase, never()).changeStatus(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("addComment")
+    class AddComment {
+
+        @Test
+        @DisplayName("returns 201 and response body when comment is added")
+        void returns201AndBodyWhenSuccess() {
+            AddCommentRequest request = AddCommentRequest.builder()
+                .content("Please check the attachment.")
+                .internal(false)
+                .build();
+            TicketComment savedComment = TicketComment.builder()
+                .id(UUID.randomUUID())
+                .ticket(savedTicket)
+                .authorId(clientId)
+                .authorRole("CLIENT")
+                .content(request.getContent())
+                .internal(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+            when(addCommentUseCase.addComment(any())).thenReturn(java.util.Optional.of(savedComment));
+
+            ResponseEntity<AddCommentResponse> result = ticketController.addComment(
+                savedTicket.getId(), clientId, "CLIENT", tenantId, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getId()).isEqualTo(savedComment.getId());
+            assertThat(result.getBody().getContent()).isEqualTo("Please check the attachment.");
+            assertThat(result.getBody().getAuthorId()).isEqualTo(clientId);
+            assertThat(result.getBody().getAuthorRole()).isEqualTo("CLIENT");
+            assertThat(result.getBody().isInternal()).isFalse();
+            assertThat(result.getBody().getCreatedAt()).isNotNull();
+            verify(addCommentUseCase).addComment(any());
+        }
+
+        @Test
+        @DisplayName("returns 404 when ticket not found")
+        void returns404WhenTicketNotFound() {
+            AddCommentRequest request = AddCommentRequest.builder()
+                .content("A comment")
+                .internal(false)
+                .build();
+            when(addCommentUseCase.addComment(any())).thenReturn(java.util.Optional.empty());
+
+            ResponseEntity<AddCommentResponse> result = ticketController.addComment(
+                UUID.randomUUID(), clientId, "CLIENT", tenantId, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+            assertThat(result.getBody()).isNull();
+            verify(addCommentUseCase).addComment(any());
         }
     }
 }

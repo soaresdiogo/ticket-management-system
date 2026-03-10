@@ -1,5 +1,7 @@
 package com.di2it.ticket_service.web;
 
+import com.di2it.ticket_service.application.usecase.AddCommentCommand;
+import com.di2it.ticket_service.application.usecase.AddCommentUseCase;
 import com.di2it.ticket_service.application.usecase.ChangeTicketStatusCommand;
 import com.di2it.ticket_service.application.usecase.ChangeTicketStatusUseCase;
 import com.di2it.ticket_service.application.usecase.CreateTicketCommand;
@@ -7,11 +9,14 @@ import com.di2it.ticket_service.application.usecase.CreateTicketUseCase;
 import com.di2it.ticket_service.application.usecase.ListAllTicketsUseCase;
 import com.di2it.ticket_service.application.usecase.ListTicketsUseCase;
 import com.di2it.ticket_service.domain.entity.Ticket;
+import com.di2it.ticket_service.web.dto.AddCommentRequest;
+import com.di2it.ticket_service.web.dto.AddCommentResponse;
 import com.di2it.ticket_service.web.dto.ChangeTicketStatusRequest;
 import com.di2it.ticket_service.web.dto.ChangeTicketStatusResponse;
 import com.di2it.ticket_service.web.dto.CreateTicketRequest;
 import com.di2it.ticket_service.web.dto.CreateTicketResponse;
 import com.di2it.ticket_service.web.dto.ListTicketsResponse;
+import com.di2it.ticket_service.web.mapper.AddCommentResponseMapper;
 import com.di2it.ticket_service.web.mapper.ChangeTicketStatusResponseMapper;
 import com.di2it.ticket_service.web.mapper.CreateTicketResponseMapper;
 import com.di2it.ticket_service.web.mapper.ListTicketsResponseMapper;
@@ -56,17 +61,20 @@ public class TicketController {
     private final ListTicketsUseCase listTicketsUseCase;
     private final ListAllTicketsUseCase listAllTicketsUseCase;
     private final ChangeTicketStatusUseCase changeTicketStatusUseCase;
+    private final AddCommentUseCase addCommentUseCase;
 
     public TicketController(
         CreateTicketUseCase createTicketUseCase,
         ListTicketsUseCase listTicketsUseCase,
         ListAllTicketsUseCase listAllTicketsUseCase,
-        ChangeTicketStatusUseCase changeTicketStatusUseCase
+        ChangeTicketStatusUseCase changeTicketStatusUseCase,
+        AddCommentUseCase addCommentUseCase
     ) {
         this.createTicketUseCase = createTicketUseCase;
         this.listTicketsUseCase = listTicketsUseCase;
         this.listAllTicketsUseCase = listAllTicketsUseCase;
         this.changeTicketStatusUseCase = changeTicketStatusUseCase;
+        this.addCommentUseCase = addCommentUseCase;
     }
 
     /**
@@ -183,6 +191,41 @@ public class TicketController {
         return changeTicketStatusUseCase.changeStatus(command)
             .map(ChangeTicketStatusResponseMapper::toResponse)
             .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Add a comment to a ticket. Ticket must belong to the tenant (from X-Tenant-Id).
+     * Both clients and accountants can add comments; author is taken from X-User-Id and X-User-Role.
+     */
+    @Operation(
+        summary = "Add comment",
+        description = "Adds a comment to a ticket. Requires X-User-Id, X-Tenant-Id and optionally X-User-Role from the gateway. Returns 404 if ticket not found or not in tenant."
+    )
+    @ApiResponse(responseCode = "201", description = "Comment created")
+    @ApiResponse(responseCode = "400", description = "Invalid request body (e.g. blank content)")
+    @ApiResponse(responseCode = "401", description = "Missing or invalid user context (X-User-Id / X-Tenant-Id)")
+    @ApiResponse(responseCode = "404", description = "Ticket not found or not in tenant")
+    @SecurityRequirement(name = "bearer-jwt")
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<AddCommentResponse> addComment(
+        @Parameter(description = "Ticket ID") @PathVariable UUID id,
+        @RequestHeader(WebConstants.HEADER_USER_ID) UUID authorId,
+        @RequestHeader(value = WebConstants.HEADER_USER_ROLE, required = false) String authorRole,
+        @RequestHeader(WebConstants.HEADER_TENANT_ID) UUID tenantId,
+        @Valid @RequestBody AddCommentRequest request
+    ) {
+        AddCommentCommand command = AddCommentCommand.builder()
+            .ticketId(id)
+            .tenantId(tenantId)
+            .authorId(authorId)
+            .authorRole(authorRole)
+            .content(request.getContent())
+            .internal(request.isInternal())
+            .build();
+        return addCommentUseCase.addComment(command)
+            .map(AddCommentResponseMapper::toResponse)
+            .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response))
             .orElse(ResponseEntity.notFound().build());
     }
 }
