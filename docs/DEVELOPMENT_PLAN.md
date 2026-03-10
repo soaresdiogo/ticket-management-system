@@ -51,7 +51,7 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 - [X] Flyway + tables (or align with init-dbs.sql); entities and repositories: `Ticket`, `TicketStatusHistory`, `TicketComment`
 - [X] **POST /tickets** — Create ticket
-- [ ] **GET /tickets** — List tickets for current user (client; filter by JWT `userId`)
+- [X] **GET /tickets** — List tickets for current user (client; filter by JWT `userId`)
 - [ ] **GET /tickets/all** — List all tickets (role ACCOUNTANT)
 - [ ] **PATCH /tickets/{id}/status** — Change status; on change, publish event to Kafka topic `ticket.status.changed` (payload: ticketId, userId, oldStatus, newStatus, timestamp)
 - [ ] **POST /tickets/{id}/comments** — Add comment
