@@ -54,7 +54,9 @@ public class JwtKeyService implements JwtPublicKeyProvider {
         String publicPem = environment.getProperty(ENV_PUBLIC_KEY);
 
         if (privatePem != null && !privatePem.isBlank() && publicPem != null && !publicPem.isBlank()) {
-            log.info("Loading JWT keys from environment (AUTH_JWT_PRIVATE_KEY / AUTH_JWT_PUBLIC_KEY)");
+            if (log.isInfoEnabled()) {
+                log.info("Loading JWT keys from environment (AUTH_JWT_PRIVATE_KEY / AUTH_JWT_PUBLIC_KEY)");
+            }
             privateKey = parsePrivateKey(decodePemFromEnv(privatePem));
             publicKey = parsePublicKey(decodePemFromEnv(publicPem));
             return;
@@ -63,13 +65,17 @@ public class JwtKeyService implements JwtPublicKeyProvider {
         String privatePath = properties.getPrivateKeyPath();
         String publicPath = properties.getPublicKeyPath();
         if (privatePath != null && !privatePath.isBlank() && publicPath != null && !publicPath.isBlank()) {
-            log.info("Loading JWT keys from files: {} and {}", privatePath, publicPath);
+            if (log.isInfoEnabled()) {
+                log.info("Loading JWT keys from files: {} and {}", privatePath, publicPath);
+            }
             privateKey = loadPrivateKeyFromPath(privatePath);
             publicKey = loadPublicKeyFromPath(publicPath);
             return;
         }
 
-        log.info("No JWT keys configured; generating and storing in {}", properties.getKeyDir());
+        if (log.isInfoEnabled()) {
+            log.info("No JWT keys configured; generating and storing in {}", properties.getKeyDir());
+        }
         KeyPair pair = generateAndStoreKeyPair();
         this.privateKey = pair.getPrivate();
         this.publicKey = pair.getPublic();
@@ -83,6 +89,7 @@ public class JwtKeyService implements JwtPublicKeyProvider {
         return publicKey;
     }
 
+    @Override
     public String getKeyId() {
         return properties.getKeyId();
     }
@@ -109,7 +116,9 @@ public class JwtKeyService implements JwtPublicKeyProvider {
             Files.writeString(privateFile, privatePem);
             Files.writeString(publicFile, publicPem);
 
-            log.info("Generated and saved RSA key pair to {} and {}", privateFile, publicFile);
+            if (log.isInfoEnabled()) {
+                log.info("Generated and saved RSA key pair to {} and {}", privateFile, publicFile);
+            }
             return pair;
         } catch (Exception e) {
             throw new IllegalStateException("Failed to generate or store JWT key pair", e);

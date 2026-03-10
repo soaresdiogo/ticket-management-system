@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -24,9 +25,8 @@ public class JwtTokenIssuerImpl implements JwtTokenIssuer {
 
     @Override
     public String createAccessToken(AccessTokenClaims claims, long expirySeconds) {
-        long now = System.currentTimeMillis();
-        Date issuedAt = new Date(now);
-        Date expiration = new Date(now + expirySeconds * 1000L);
+        Instant now = Instant.now();
+        Instant expiration = now.plusSeconds(expirySeconds);
 
         return Jwts.builder()
             .header().keyId(jwtKeyService.getKeyId()).and()
@@ -34,8 +34,8 @@ public class JwtTokenIssuerImpl implements JwtTokenIssuer {
             .claim("email", claims.getEmail())
             .claim("role", claims.getRole())
             .claim("tenantId", claims.getTenantId().toString())
-            .issuedAt(issuedAt)
-            .expiration(expiration)
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(expiration))
             .signWith(jwtKeyService.getPrivateKey(), Jwts.SIG.RS256)
             .compact();
     }

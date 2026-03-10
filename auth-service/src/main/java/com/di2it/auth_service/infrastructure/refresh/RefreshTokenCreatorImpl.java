@@ -19,6 +19,7 @@ import java.util.Base64;
 public class RefreshTokenCreatorImpl implements RefreshTokenCreator {
 
     private static final int TOKEN_BYTES = 32;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -46,7 +47,7 @@ public class RefreshTokenCreatorImpl implements RefreshTokenCreator {
 
     private static String generateSecureToken() {
         byte[] bytes = new byte[TOKEN_BYTES];
-        new SecureRandom().nextBytes(bytes);
+        RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }

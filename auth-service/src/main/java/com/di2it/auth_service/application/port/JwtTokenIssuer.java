@@ -5,6 +5,7 @@ import com.di2it.auth_service.application.AccessTokenClaims;
 /**
  * Port for issuing RS256 access tokens (JWT).
  */
+@FunctionalInterface
 public interface JwtTokenIssuer {
 
     /**

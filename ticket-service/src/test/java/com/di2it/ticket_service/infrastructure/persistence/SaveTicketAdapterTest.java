@@ -72,7 +72,8 @@ class SaveTicketAdapterTest {
                 .updatedAt(ticket.getUpdatedAt())
                 .build();
             when(ticketRepository.save(any(Ticket.class))).thenReturn(savedTicket);
-            when(ticketStatusHistoryRepository.save(any(TicketStatusHistory.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(ticketStatusHistoryRepository.save(any(TicketStatusHistory.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
             Ticket result = saveTicketAdapter.save(ticket, changedBy);
 

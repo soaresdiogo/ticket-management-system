@@ -17,7 +17,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AddCommentRequest {
 
-    @Schema(description = "Comment text", example = "Please check the attached invoice.", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+        description = "Comment text",
+        example = "Please check the attached invoice.",
+        requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "Content is required")
     @Size(max = 10_000)
     private String content;

@@ -7,6 +7,7 @@ import java.util.UUID;
 /**
  * Port for persisting a new ticket and its initial status history.
  */
+@FunctionalInterface
 public interface CreateTicketPort {
 
     /**

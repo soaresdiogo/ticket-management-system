@@ -7,6 +7,7 @@ import java.util.UUID;
 /**
  * Port for updating a ticket's status and recording the change in history.
  */
+@FunctionalInterface
 public interface UpdateTicketStatusPort {
 
     /**

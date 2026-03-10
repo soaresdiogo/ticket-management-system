@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Locale;
+
 /**
  * Use case: validate credentials, generate MFA code, store in Redis with TTL, send via email.
  */
@@ -44,7 +46,7 @@ public class LoginService {
     }
 
     private static String normalizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase();
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     private User findActiveUser(String email) {

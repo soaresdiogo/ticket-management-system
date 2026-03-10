@@ -5,6 +5,8 @@ package com.di2it.auth_service.service;
  */
 public class InvalidMfaCodeException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public InvalidMfaCodeException(String message) {
         super(message);
     }

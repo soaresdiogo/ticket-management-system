@@ -5,6 +5,7 @@ import com.di2it.auth_service.domain.entity.User;
 /**
  * Port for redeeming a refresh token: validate, revoke (one-time use), and return the associated user.
  */
+@FunctionalInterface
 public interface RefreshTokenRedeemer {
 
     /**

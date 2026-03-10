@@ -17,7 +17,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ChangeTicketStatusRequest {
 
-    @Schema(description = "New status (e.g. OPEN, IN_PROGRESS, RESOLVED, CLOSED)", example = "IN_PROGRESS", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+        description = "New status (e.g. OPEN, IN_PROGRESS, RESOLVED, CLOSED)",
+        example = "IN_PROGRESS",
+        requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "Status is required")
     @Size(max = 50)
     private String status;

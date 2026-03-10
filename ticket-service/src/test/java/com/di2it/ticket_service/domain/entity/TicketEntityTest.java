@@ -74,8 +74,10 @@ class TicketEntityTest {
         @DisplayName("uses only id for equality")
         void usesIdOnly() {
             UUID id = UUID.randomUUID();
-            Ticket a = Ticket.builder().id(id).tenantId(UUID.randomUUID()).clientId(UUID.randomUUID()).title("A").description("D").status("OPEN").build();
-            Ticket b = Ticket.builder().id(id).tenantId(UUID.randomUUID()).clientId(UUID.randomUUID()).title("B").description("D2").status("CLOSED").build();
+            Ticket a = Ticket.builder().id(id).tenantId(UUID.randomUUID()).clientId(UUID.randomUUID())
+                .title("A").description("D").status("OPEN").build();
+            Ticket b = Ticket.builder().id(id).tenantId(UUID.randomUUID()).clientId(UUID.randomUUID())
+                .title("B").description("D2").status("CLOSED").build();
 
             assertThat(a).isEqualTo(b);
             assertThat(a.hashCode()).isEqualTo(b.hashCode());

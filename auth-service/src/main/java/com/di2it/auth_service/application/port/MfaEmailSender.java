@@ -3,6 +3,7 @@ package com.di2it.auth_service.application.port;
 /**
  * Port for sending MFA code by email (e.g. via Resend).
  */
+@FunctionalInterface
 public interface MfaEmailSender {
 
     /**

@@ -1,15 +1,16 @@
 # TMS — One-command build, test, and run (for new developers)
 # Requires: JDK 25, Maven 3.x, Docker & docker-compose
 
-.PHONY: help build clean install test docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file env-check install-hooks
+.PHONY: help build clean install test lint docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file env-check install-hooks
 
 help:
 	@echo "TMS — Ticket Management System"
 	@echo ""
 	@echo "  make install      - Build all services in cascade (Maven reactor)"
 	@echo "  make test        - Run tests for all services"
+	@echo "  make lint        - Run Checkstyle, PMD, and SpotBugs (no tests)"
 	@echo "  make clean       - Clean all service targets"
-	@echo "  make install-hooks - Install git pre-commit hook (runs 'make test' before each commit)"
+	@echo "  make install-hooks - Install git pre-commit hook (runs 'make lint' before each commit)"
 	@echo "  make docker-up   - Start Postgres, Redis, Kafka (docker-compose)"
 	@echo "  make docker-down - Stop docker-compose"
 	@echo "  make init-dbs    - Run docker/init-dbs.sql (create DBs + schema; use if not first start)"
@@ -32,15 +33,19 @@ build install:
 test:
 	$(MVN) -f pom.xml test
 
+# Checkstyle + PMD + SpotBugs only (fast, for pre-commit). Full verify runs these + tests.
+lint:
+	$(MVN) -f pom.xml checkstyle:check pmd:check spotbugs:check
+
 clean:
 	$(MVN) -f pom.xml clean
 
-# Install git pre-commit hook so "make test" runs automatically before each commit (like Husky in Node).
+# Install git pre-commit hook so "make lint" runs automatically before each commit (like Husky in Node).
 install-hooks:
 	@mkdir -p .git/hooks
 	@cp scripts/git-hooks/pre-commit .git/hooks/pre-commit
 	@chmod +x .git/hooks/pre-commit
-	@echo "Pre-commit hook installed. 'make test' will run before each commit."
+	@echo "Pre-commit hook installed. 'make lint' (Checkstyle, PMD, SpotBugs) will run before each commit."
 
 docker-up:
 	docker compose up -d

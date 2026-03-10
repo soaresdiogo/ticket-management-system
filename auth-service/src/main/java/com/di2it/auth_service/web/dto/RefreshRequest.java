@@ -17,7 +17,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RefreshRequest {
 
-    @Schema(description = "Refresh token from verify-mfa or previous refresh", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+        description = "Refresh token from verify-mfa or previous refresh",
+        requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "Refresh token is required")
     @Size(max = 512)
     private String refreshToken;

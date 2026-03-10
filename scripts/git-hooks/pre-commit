@@ -1,6 +1,6 @@
 #!/bin/sh
-# Pre-commit hook: run tests before allowing commit.
-# Installed by: make install-hooks
-# Runs from repo root so "make test" works regardless of current directory.
+# Pre-commit hook: run linters (Checkstyle, PMD, SpotBugs) before allowing commit.
+# Installed by: make install-hooks or ./scripts/setup-hooks.sh
+# Runs from repo root so "make lint" works regardless of current directory.
 set -e
-cd "$(git rev-parse --show-toplevel)" && make test
+cd "$(git rev-parse --show-toplevel)" && make lint

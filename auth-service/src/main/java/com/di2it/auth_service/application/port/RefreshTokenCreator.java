@@ -6,6 +6,7 @@ import com.di2it.auth_service.domain.entity.User;
  * Port for creating and persisting a refresh token for a user.
  * Returns the opaque token value to be sent to the client (only once).
  */
+@FunctionalInterface
 public interface RefreshTokenCreator {
 
     /**

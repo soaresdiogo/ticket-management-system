@@ -6,6 +6,7 @@ import reactor.core.publisher.Mono;
  * Port for obtaining the JWT public key (PEM) used to validate tokens.
  * Implementations typically fetch from auth-service and may cache the result.
  */
+@FunctionalInterface
 public interface AuthPublicKeyProvider {
 
     /**

@@ -46,8 +46,9 @@ class UserContextPropagationGlobalFilterTest {
     @Test
     @DisplayName("adds X-User-Id, X-User-Role, X-Tenant-Id when principal is JWT and extract returns headers")
     void authenticatedRequest_propagatesHeaders() {
-        Jwt jwt = Jwt.withTokenValue("token").header("alg", "RS256").subject("user-123").issuedAt(Instant.now())
-            .expiresAt(Instant.now().plusSeconds(3600)).claim("role", "ACCOUNTANT").claim("tenantId", "tenant-456").build();
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "RS256").subject("user-123")
+                .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(3600))
+                .claim("role", "ACCOUNTANT").claim("tenantId", "tenant-456").build();
         PropagatedUserHeaders headers = new PropagatedUserHeaders("user-123", "ACCOUNTANT", "tenant-456");
         when(extractor.extract(jwt)).thenReturn(Optional.of(headers));
 
@@ -84,14 +85,16 @@ class UserContextPropagationGlobalFilterTest {
         var exchangeCaptor = org.mockito.ArgumentCaptor.forClass(ServerWebExchange.class);
         verify(chain).filter(exchangeCaptor.capture());
         ServerWebExchange capturedExchange = exchangeCaptor.getValue();
-        assertThat(capturedExchange.getRequest().getHeaders().getFirst(PropagatedUserHeaders.HEADER_USER_ID)).isNull();
+        assertThat(capturedExchange.getRequest().getHeaders()
+                .getFirst(PropagatedUserHeaders.HEADER_USER_ID)).isNull();
     }
 
     @Test
     @DisplayName("does not add headers when extract returns empty and continues chain")
     void extractReturnsEmpty_continuesWithoutHeaders() {
-        Jwt jwt = Jwt.withTokenValue("token").header("alg", "RS256").subject("user-123").issuedAt(Instant.now())
-            .expiresAt(Instant.now().plusSeconds(3600)).claim("role", "CLIENT").claim("tenantId", "tid").build();
+        Jwt jwt = Jwt.withTokenValue("token").header("alg", "RS256").subject("user-123")
+                .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(3600))
+                .claim("role", "CLIENT").claim("tenantId", "tid").build();
         when(extractor.extract(jwt)).thenReturn(Optional.empty());
 
         MockServerHttpRequest baseRequest = MockServerHttpRequest.get("/tickets/1").build();
@@ -105,7 +108,8 @@ class UserContextPropagationGlobalFilterTest {
 
         var exchangeCaptor = org.mockito.ArgumentCaptor.forClass(ServerWebExchange.class);
         verify(chain).filter(exchangeCaptor.capture());
-        assertThat(exchangeCaptor.getValue().getRequest().getHeaders().getFirst(PropagatedUserHeaders.HEADER_USER_ID)).isNull();
+        assertThat(exchangeCaptor.getValue().getRequest().getHeaders()
+                .getFirst(PropagatedUserHeaders.HEADER_USER_ID)).isNull();
     }
 
     /** Exchange decorator that returns an Authentication (Principal) whose getPrincipal() is the Jwt. */

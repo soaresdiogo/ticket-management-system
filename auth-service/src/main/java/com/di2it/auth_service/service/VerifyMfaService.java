@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Locale;
+
 /**
  * Use case: validate MFA code from Redis, issue RS256 JWT and optional refresh token.
  */
@@ -65,7 +67,7 @@ public class VerifyMfaService {
     }
 
     private static String normalizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase();
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     private static String normalizeCode(String code) {

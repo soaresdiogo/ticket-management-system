@@ -56,6 +56,8 @@ import java.util.UUID;
 public class TicketController {
 
     private static final String DEFAULT_SORT_FIELD = "createdAt";
+    private static final String API_RESPONSE_UNAUTHORIZED = "401";
+    private static final String SECURITY_SCHEME_BEARER_JWT = "bearer-jwt";
 
     private final CreateTicketUseCase createTicketUseCase;
     private final ListTicketsUseCase listTicketsUseCase;
@@ -82,12 +84,11 @@ public class TicketController {
      */
     @Operation(
         summary = "Create ticket",
-        description = "Creates a new ticket for the authenticated user (client). Requires X-User-Id and X-Tenant-Id headers from the gateway."
-    )
+        description = "Creates a new ticket. Requires X-User-Id and X-Tenant-Id from gateway.")
     @ApiResponse(responseCode = "201", description = "Ticket created")
     @ApiResponse(responseCode = "400", description = "Invalid request body")
-    @ApiResponse(responseCode = "401", description = "Missing or invalid user context (X-User-Id / X-Tenant-Id)")
-    @SecurityRequirement(name = "bearer-jwt")
+    @ApiResponse(responseCode = API_RESPONSE_UNAUTHORIZED, description = "Missing or invalid user context")
+    @SecurityRequirement(name = SECURITY_SCHEME_BEARER_JWT)
     @PostMapping
     public ResponseEntity<CreateTicketResponse> createTicket(
         @RequestHeader(WebConstants.HEADER_USER_ID) UUID clientId,
@@ -114,11 +115,10 @@ public class TicketController {
      */
     @Operation(
         summary = "List my tickets",
-        description = "Returns a paginated list of tickets for the authenticated user (client). Requires X-User-Id from the gateway. Results are ordered by creation date, newest first."
-    )
+        description = "Paginated list of tickets for the authenticated user. Requires X-User-Id. Newest first.")
     @ApiResponse(responseCode = "200", description = "Paginated list of tickets")
-    @ApiResponse(responseCode = "401", description = "Missing or invalid user context (X-User-Id)")
-    @SecurityRequirement(name = "bearer-jwt")
+    @ApiResponse(responseCode = API_RESPONSE_UNAUTHORIZED, description = "Missing or invalid user context")
+    @SecurityRequirement(name = SECURITY_SCHEME_BEARER_JWT)
     @GetMapping
     public ResponseEntity<ListTicketsResponse> listTickets(
         @RequestHeader(WebConstants.HEADER_USER_ID) UUID clientId,
@@ -136,12 +136,12 @@ public class TicketController {
      */
     @Operation(
         summary = "List all tickets (ACCOUNTANT)",
-        description = "Returns a paginated list of all tickets for the tenant. Requires X-User-Role=ACCOUNTANT and X-Tenant-Id from the gateway. Results are ordered by creation date, newest first."
-    )
+        description = "Paginated list of all tickets for the tenant. Requires ACCOUNTANT and X-Tenant-Id.")
     @ApiResponse(responseCode = "200", description = "Paginated list of tickets")
     @ApiResponse(responseCode = "403", description = "Forbidden: requires ACCOUNTANT role")
-    @ApiResponse(responseCode = "401", description = "Missing or invalid user context (X-Tenant-Id / X-User-Role)")
-    @SecurityRequirement(name = "bearer-jwt")
+    @ApiResponse(responseCode = API_RESPONSE_UNAUTHORIZED,
+        description = "Missing or invalid user context (tenant/role)")
+    @SecurityRequirement(name = SECURITY_SCHEME_BEARER_JWT)
     @GetMapping("/all")
     public ResponseEntity<ListTicketsResponse> listAllTickets(
         @RequestHeader(value = WebConstants.HEADER_USER_ROLE, required = false) String role,
@@ -164,13 +164,12 @@ public class TicketController {
      */
     @Operation(
         summary = "Change ticket status (ACCOUNTANT)",
-        description = "Updates the ticket status. Requires X-User-Role=ACCOUNTANT and X-Tenant-Id. On change, publishes event to Kafka topic ticket.status.changed. Returns 404 if ticket not found or not in tenant."
-    )
+        description = "Updates ticket status. Requires ACCOUNTANT. Publishes to Kafka. 404 if not found.")
     @ApiResponse(responseCode = "200", description = "Status updated (or unchanged)")
     @ApiResponse(responseCode = "400", description = "Invalid request body (e.g. blank status)")
     @ApiResponse(responseCode = "403", description = "Forbidden: requires ACCOUNTANT role")
     @ApiResponse(responseCode = "404", description = "Ticket not found or not in tenant")
-    @SecurityRequirement(name = "bearer-jwt")
+    @SecurityRequirement(name = SECURITY_SCHEME_BEARER_JWT)
     @PatchMapping("/{id}/status")
     public ResponseEntity<ChangeTicketStatusResponse> changeTicketStatus(
         @Parameter(description = "Ticket ID") @PathVariable UUID id,
@@ -200,13 +199,12 @@ public class TicketController {
      */
     @Operation(
         summary = "Add comment",
-        description = "Adds a comment to a ticket. Requires X-User-Id, X-Tenant-Id and optionally X-User-Role from the gateway. Returns 404 if ticket not found or not in tenant."
-    )
+        description = "Adds a comment to a ticket. Requires X-User-Id, X-Tenant-Id. Returns 404 if not found.")
     @ApiResponse(responseCode = "201", description = "Comment created")
     @ApiResponse(responseCode = "400", description = "Invalid request body (e.g. blank content)")
-    @ApiResponse(responseCode = "401", description = "Missing or invalid user context (X-User-Id / X-Tenant-Id)")
+    @ApiResponse(responseCode = API_RESPONSE_UNAUTHORIZED, description = "Missing or invalid user context")
     @ApiResponse(responseCode = "404", description = "Ticket not found or not in tenant")
-    @SecurityRequirement(name = "bearer-jwt")
+    @SecurityRequirement(name = SECURITY_SCHEME_BEARER_JWT)
     @PostMapping("/{id}/comments")
     public ResponseEntity<AddCommentResponse> addComment(
         @Parameter(description = "Ticket ID") @PathVariable UUID id,
