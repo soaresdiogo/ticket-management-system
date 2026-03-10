@@ -2,6 +2,7 @@ package com.di2it.ticket_service.web;
 
 import com.di2it.ticket_service.application.usecase.CreateTicketCommand;
 import com.di2it.ticket_service.application.usecase.CreateTicketUseCase;
+import com.di2it.ticket_service.application.usecase.ListAllTicketsUseCase;
 import com.di2it.ticket_service.application.usecase.ListTicketsUseCase;
 import com.di2it.ticket_service.domain.entity.Ticket;
 import com.di2it.ticket_service.web.dto.CreateTicketRequest;
@@ -46,10 +47,16 @@ public class TicketController {
 
     private final CreateTicketUseCase createTicketUseCase;
     private final ListTicketsUseCase listTicketsUseCase;
+    private final ListAllTicketsUseCase listAllTicketsUseCase;
 
-    public TicketController(CreateTicketUseCase createTicketUseCase, ListTicketsUseCase listTicketsUseCase) {
+    public TicketController(
+        CreateTicketUseCase createTicketUseCase,
+        ListTicketsUseCase listTicketsUseCase,
+        ListAllTicketsUseCase listAllTicketsUseCase
+    ) {
         this.createTicketUseCase = createTicketUseCase;
         this.listTicketsUseCase = listTicketsUseCase;
+        this.listAllTicketsUseCase = listAllTicketsUseCase;
     }
 
     /**
@@ -103,6 +110,33 @@ public class TicketController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, DEFAULT_SORT_FIELD));
         ListTicketsResponse response = ListTicketsResponseMapper.toResponse(
             listTicketsUseCase.listByClient(clientId, pageable));
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * List all tickets for the tenant. Restricted to ACCOUNTANT role (X-User-Role from gateway).
+     */
+    @Operation(
+        summary = "List all tickets (ACCOUNTANT)",
+        description = "Returns a paginated list of all tickets for the tenant. Requires X-User-Role=ACCOUNTANT and X-Tenant-Id from the gateway. Results are ordered by creation date, newest first."
+    )
+    @ApiResponse(responseCode = "200", description = "Paginated list of tickets")
+    @ApiResponse(responseCode = "403", description = "Forbidden: requires ACCOUNTANT role")
+    @ApiResponse(responseCode = "401", description = "Missing or invalid user context (X-Tenant-Id / X-User-Role)")
+    @SecurityRequirement(name = "bearer-jwt")
+    @GetMapping("/all")
+    public ResponseEntity<ListTicketsResponse> listAllTickets(
+        @RequestHeader(value = WebConstants.HEADER_USER_ROLE, required = false) String role,
+        @RequestHeader(WebConstants.HEADER_TENANT_ID) UUID tenantId,
+        @Parameter(description = "Zero-based page index") @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size
+    ) {
+        if (!WebConstants.ROLE_ACCOUNTANT.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, DEFAULT_SORT_FIELD));
+        ListTicketsResponse response = ListTicketsResponseMapper.toResponse(
+            listAllTicketsUseCase.listByTenant(tenantId, pageable));
         return ResponseEntity.ok(response);
     }
 }

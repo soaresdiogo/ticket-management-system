@@ -1,6 +1,7 @@
 package com.di2it.ticket_service.web;
 
 import com.di2it.ticket_service.application.usecase.CreateTicketUseCase;
+import com.di2it.ticket_service.application.usecase.ListAllTicketsUseCase;
 import com.di2it.ticket_service.application.usecase.ListTicketsUseCase;
 import com.di2it.ticket_service.domain.entity.Ticket;
 import com.di2it.ticket_service.web.dto.CreateTicketRequest;
@@ -29,6 +30,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +42,9 @@ class TicketControllerTest {
 
     @Mock
     private ListTicketsUseCase listTicketsUseCase;
+
+    @Mock
+    private ListAllTicketsUseCase listAllTicketsUseCase;
 
     @InjectMocks
     private TicketController ticketController;
@@ -141,8 +146,56 @@ class TicketControllerTest {
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(result.getBody()).isNotNull();
             assertThat(result.getBody().getContent()).isEmpty();
-            assertThat(result.getBody().getTotalElements()).isEqualTo(0);
+            assertThat(result.getBody().getTotalElements()).isZero();
             verify(listTicketsUseCase).listByClient(eq(clientId), any(org.springframework.data.domain.Pageable.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("listAllTickets")
+    class ListAllTickets {
+
+        @Test
+        @DisplayName("returns 200 and paginated list when role is ACCOUNTANT")
+        void returns200AndPaginatedListWhenAccountant() {
+            Page<Ticket> ticketPage = new PageImpl<>(
+                List.of(savedTicket),
+                PageRequest.of(0, 20),
+                1
+            );
+            when(listAllTicketsUseCase.listByTenant(eq(tenantId), any())).thenReturn(ticketPage);
+
+            ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
+                "ACCOUNTANT", tenantId, 0, 20);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getContent()).hasSize(1);
+            assertThat(result.getBody().getContent().get(0).getId()).isEqualTo(savedTicket.getId());
+            assertThat(result.getBody().getTotalElements()).isEqualTo(1);
+            verify(listAllTicketsUseCase).listByTenant(eq(tenantId), any(org.springframework.data.domain.Pageable.class));
+        }
+
+        @Test
+        @DisplayName("returns 403 when role is not ACCOUNTANT")
+        void returns403WhenNotAccountant() {
+            ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
+                "CLIENT", tenantId, 0, 20);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(result.getBody()).isNull();
+            verify(listAllTicketsUseCase, never()).listByTenant(any(), any());
+        }
+
+        @Test
+        @DisplayName("returns 403 when role is null")
+        void returns403WhenRoleNull() {
+            ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
+                null, tenantId, 0, 20);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(result.getBody()).isNull();
+            verify(listAllTicketsUseCase, never()).listByTenant(any(), any());
         }
     }
 }

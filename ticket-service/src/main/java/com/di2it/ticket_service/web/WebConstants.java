@@ -11,4 +11,8 @@ public final class WebConstants {
 
     public static final String HEADER_USER_ID = "X-User-Id";
     public static final String HEADER_TENANT_ID = "X-Tenant-Id";
+    public static final String HEADER_USER_ROLE = "X-User-Role";
+
+    /** Role required to list all tickets (tenant-scoped). */
+    public static final String ROLE_ACCOUNTANT = "ACCOUNTANT";
 }
