@@ -59,7 +59,10 @@ import java.util.UUID;
 public class AuthController {
 
     private static final String ERROR_KEY = "error";
-    private static final String MFA_SENT_MESSAGE = "If an account exists, a verification code has been sent to your email.";
+    private static final String RESPONSE_CODE_OK = "200";
+    private static final String RESPONSE_CODE_UNAUTHORIZED = "401";
+    private static final String MFA_SENT_MESSAGE =
+        "If an account exists, a verification code has been sent to your email.";
 
     private static final String PASSWORD_CHANGED_MESSAGE = "Password changed successfully.";
 
@@ -90,11 +93,14 @@ public class AuthController {
      * Expose public key for gateway and other services to validate JWT (RS256).
      * GET /auth/public-key
      */
-    @Operation(summary = "Get JWT public key", description = "Returns the public key (PEM) for validating RS256 JWTs. Used by gateway and other services.")
-    @ApiResponse(responseCode = "200", description = "Public key and metadata")
+    @Operation(
+        summary = "Get JWT public key",
+        description = "Returns the public key (PEM) for validating RS256 JWTs. Used by gateway and other services.")
+    @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "Public key and metadata")
     @GetMapping("/public-key")
     public ResponseEntity<PublicKeyResponse> getPublicKey() {
-        PublicKeyResponse response = PublicKeyResponseMapper.toResponse(getPublicKeyService.getPublicKey());
+        PublicKeyResponse response =
+            PublicKeyResponseMapper.toResponse(getPublicKeyService.getPublicKey());
         return ResponseEntity.ok(response);
     }
 
@@ -102,7 +108,9 @@ public class AuthController {
      * Register a new user for a tenant (e.g. created by office/tenant admin).
      * POST /auth/tenants/{tenantId}/users
      */
-    @Operation(summary = "Register user", description = "Register a new user for the given tenant. No authentication required.")
+    @Operation(
+        summary = "Register user",
+        description = "Register a new user for the given tenant. No authentication required.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "User created"),
         @ApiResponse(responseCode = "404", description = "Tenant not found"),
@@ -121,10 +129,12 @@ public class AuthController {
      * Login: validate credentials, generate MFA code, store in Redis with TTL, send via Resend.
      * POST /auth/login
      */
-    @Operation(summary = "Login", description = "Validates credentials and sends an MFA code to the user's email. Use verify-mfa with the code to obtain tokens.")
+    @Operation(
+        summary = "Login",
+        description = "Validates credentials and sends an MFA code to the user's email. Use verify-mfa for tokens.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "MFA code sent (or generic message for security)"),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+        @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "MFA code sent (or generic message for security)"),
+        @ApiResponse(responseCode = RESPONSE_CODE_UNAUTHORIZED, description = "Invalid credentials"),
         @ApiResponse(responseCode = "503", description = "Email delivery failed")
     })
     @PostMapping("/login")
@@ -137,10 +147,12 @@ public class AuthController {
      * Verify MFA code from Redis, issue RS256 JWT and optional refresh token.
      * POST /auth/verify-mfa
      */
-    @Operation(summary = "Verify MFA", description = "Verifies the MFA code sent by email and returns an access token (and optionally a refresh token).")
+    @Operation(
+        summary = "Verify MFA",
+        description = "Verifies the MFA code sent by email and returns an access token (and optional refresh token).")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Tokens issued"),
-        @ApiResponse(responseCode = "401", description = "Invalid or expired MFA code")
+        @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "Tokens issued"),
+        @ApiResponse(responseCode = RESPONSE_CODE_UNAUTHORIZED, description = "Invalid or expired MFA code")
     })
     @PostMapping("/verify-mfa")
     public ResponseEntity<VerifyMfaResponse> verifyMfa(@Valid @RequestBody VerifyMfaRequest request) {
@@ -163,10 +175,12 @@ public class AuthController {
      * Refresh: validate refresh token, issue new access token and new refresh token (rotation).
      * POST /auth/refresh
      */
-    @Operation(summary = "Refresh tokens", description = "Exchanges a valid refresh token for a new access token and a new refresh token (rotation).")
+    @Operation(
+        summary = "Refresh tokens",
+        description = "Exchanges a valid refresh token for a new access token and a new refresh token (rotation).")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "New tokens issued"),
-        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+        @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "New tokens issued"),
+        @ApiResponse(responseCode = RESPONSE_CODE_UNAUTHORIZED, description = "Invalid or expired refresh token")
     })
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponse> refresh(@Valid @RequestBody RefreshRequest request) {
@@ -180,10 +194,15 @@ public class AuthController {
      * Change password for the authenticated user (JWT required). Sets first_access = false.
      * POST /auth/change-password
      */
-    @Operation(summary = "Change password", description = "Changes the authenticated user's password. Requires JWT in Authorization header.", security = @SecurityRequirement(name = "bearer-jwt"))
+    @Operation(
+        summary = "Change password",
+        description = "Changes the authenticated user's password. Requires JWT in Authorization header.",
+        security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Password changed"),
-        @ApiResponse(responseCode = "401", description = "Invalid current password or not authenticated")
+        @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "Password changed"),
+        @ApiResponse(
+            responseCode = RESPONSE_CODE_UNAUTHORIZED,
+            description = "Invalid current password or not authenticated")
     })
     @PostMapping("/change-password")
     public ResponseEntity<ChangePasswordResponse> changePassword(
@@ -201,34 +220,38 @@ public class AuthController {
         );
     }
 
+    private static Map<String, String> errorBody(String message) {
+        return Map.of(ERROR_KEY, message);
+    }
+
     @ExceptionHandler(InvalidMfaCodeException.class)
     public ResponseEntity<Map<String, String>> handleInvalidMfaCode(InvalidMfaCodeException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(ERROR_KEY, ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorBody(ex.getMessage()));
     }
 
     @ExceptionHandler(InvalidRefreshTokenException.class)
     public ResponseEntity<Map<String, String>> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(ERROR_KEY, ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorBody(ex.getMessage()));
     }
 
     @ExceptionHandler(TenantNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleTenantNotFound(TenantNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(ERROR_KEY, ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorBody(ex.getMessage()));
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateEmail(DuplicateEmailException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(ERROR_KEY, ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorBody(ex.getMessage()));
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(ERROR_KEY, ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorBody(ex.getMessage()));
     }
 
     @ExceptionHandler(EmailDeliveryException.class)
     public ResponseEntity<Map<String, String>> handleEmailDelivery(EmailDeliveryException ex) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-            .body(Map.of(ERROR_KEY, "Unable to send verification email. Please try again later."));
+            .body(errorBody("Unable to send verification email. Please try again later."));
     }
 }

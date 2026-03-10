@@ -41,12 +41,7 @@ public class ResendMfaEmailSender implements MfaEmailSender {
         String subject = "Your login verification code";
         String html = buildMfaEmailHtml(code);
 
-        Map<String, Object> body = Map.of(
-            "from", fromEmail,
-            "to", List.of(to),
-            "subject", subject,
-            "html", html
-        );
+        Map<String, Object> body = buildEmailBody(fromEmail, to, subject, html);
 
         try {
             restClient.post()
@@ -58,10 +53,18 @@ public class ResendMfaEmailSender implements MfaEmailSender {
         }
     }
 
+    private static Map<String, Object> buildEmailBody(String from, String to, String subject, String html) {
+        return Map.of(
+            "from", from,
+            "to", List.of(to),
+            "subject", subject,
+            "html", html
+        );
+    }
+
     private static String buildMfaEmailHtml(String code) {
-        return """
-            <p>Your verification code is: <strong>%s</strong></p>
-            <p>This code expires in 5 minutes. Do not share it with anyone.</p>
-            """.formatted(code);
+        String template = "<p>Your verification code is: <strong>%s</strong></p>%n"
+            + "<p>This code expires in 5 minutes. Do not share it with anyone.</p>%n";
+        return template.formatted(code);
     }
 }

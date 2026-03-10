@@ -6,6 +6,7 @@ import com.di2it.ticket_service.domain.entity.Ticket;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 /**
  * Use case: create a new ticket with initial OPEN status and one status history record.
@@ -30,7 +31,7 @@ public class CreateTicketUseCase {
      */
     public Ticket create(CreateTicketCommand command) {
         String priority = command.getPriority() != null && !command.getPriority().isBlank()
-            ? command.getPriority().trim().toUpperCase()
+            ? command.getPriority().trim().toUpperCase(Locale.ROOT)
             : DEFAULT_PRIORITY;
 
         Ticket ticket = Ticket.builder()

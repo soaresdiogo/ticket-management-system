@@ -62,7 +62,8 @@ class UpdateTicketStatusAdapterTest {
         @DisplayName("saves ticket and creates status history record")
         void savesTicketAndHistory() {
             when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
-            when(ticketStatusHistoryRepository.save(any(TicketStatusHistory.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(ticketStatusHistoryRepository.save(any(TicketStatusHistory.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
             Ticket result = updateTicketStatusAdapter.updateStatus(ticket, changedBy, "OPEN");
 

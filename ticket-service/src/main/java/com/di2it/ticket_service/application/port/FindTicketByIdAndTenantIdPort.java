@@ -8,6 +8,7 @@ import java.util.UUID;
 /**
  * Port for loading a ticket by id within a tenant (tenant isolation).
  */
+@FunctionalInterface
 public interface FindTicketByIdAndTenantIdPort {
 
     /**

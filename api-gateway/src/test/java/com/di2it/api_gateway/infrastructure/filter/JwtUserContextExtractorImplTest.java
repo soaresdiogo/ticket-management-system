@@ -60,8 +60,9 @@ class JwtUserContextExtractorImplTest {
         @Test
         @DisplayName("returns empty when subject is null")
         void nullSubject_returnsEmpty() {
-            Jwt withNullSub = Jwt.withTokenValue("t").header("alg", "RS256").issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(1))
-                .claim("role", "CLIENT").claim("tenantId", "tenant-id").build();
+            Jwt withNullSub = Jwt.withTokenValue("t").header("alg", "RS256")
+                    .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(1))
+                    .claim("role", "CLIENT").claim("tenantId", "tenant-id").build();
 
             Optional<PropagatedUserHeaders> result = extractor.extract(withNullSub);
 
@@ -81,8 +82,9 @@ class JwtUserContextExtractorImplTest {
         @Test
         @DisplayName("returns empty when role is null")
         void nullRole_returnsEmpty() {
-            Jwt jwt = Jwt.withTokenValue("t").header("alg", "RS256").subject("user-id").issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(1))
-                .claim("tenantId", "tenant-id").build();
+            Jwt jwt = Jwt.withTokenValue("t").header("alg", "RS256").subject("user-id")
+                    .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(1))
+                    .claim("tenantId", "tenant-id").build();
 
             Optional<PropagatedUserHeaders> result = extractor.extract(jwt);
 
@@ -92,8 +94,9 @@ class JwtUserContextExtractorImplTest {
         @Test
         @DisplayName("returns empty when tenantId is null")
         void nullTenantId_returnsEmpty() {
-            Jwt jwt = Jwt.withTokenValue("t").header("alg", "RS256").subject("user-id").issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(1))
-                .claim("role", "CLIENT").build();
+            Jwt jwt = Jwt.withTokenValue("t").header("alg", "RS256").subject("user-id")
+                    .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(1))
+                    .claim("role", "CLIENT").build();
 
             Optional<PropagatedUserHeaders> result = extractor.extract(jwt);
 

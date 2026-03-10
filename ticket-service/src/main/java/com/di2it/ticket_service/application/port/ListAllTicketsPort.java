@@ -11,6 +11,7 @@ import java.util.UUID;
  * Port to list all tickets for a tenant (e.g. for ACCOUNTANT role).
  * Used by GET /tickets/all to return a tenant-scoped list.
  */
+@FunctionalInterface
 public interface ListAllTicketsPort {
 
     Page<Ticket> findByTenantId(UUID tenantId, Pageable pageable);

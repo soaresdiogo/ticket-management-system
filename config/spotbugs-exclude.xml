@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SpotBugs exclude filter. Add Match elements to ignore specific bugs or classes. -->
+<FindBugsFilter
+    xmlns="https://github.com/spotbugs/filter/3.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+    <!-- Example: exclude a specific bug pattern in generated code
+    <Match>
+        <Class name="~.*\.Generated.*"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+    </Match>
+    -->
+    <!-- EI_EXPOSE_REP2: false positive for Spring-injected repository interfaces -->
+    <Match>
+        <Class name="com.di2it.auth_service.infrastructure.refresh.RefreshTokenCreatorImpl"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.di2it.auth_service.infrastructure.refresh.RefreshTokenRedeemerImpl"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <!-- EI_EXPOSE_REP2: false positive for Spring-injected beans -->
+    <Match>
+        <Class name="com.di2it.ticket_service.infrastructure.messaging.KafkaTicketStatusChangedPublisher"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.di2it.ticket_service.web.TicketController"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>

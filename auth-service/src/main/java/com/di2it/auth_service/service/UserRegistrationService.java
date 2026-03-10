@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -46,10 +47,10 @@ public class UserRegistrationService {
 
         User user = User.builder()
             .tenant(tenant)
-            .email(request.getEmail().trim().toLowerCase())
+            .email(request.getEmail().trim().toLowerCase(Locale.ROOT))
             .passwordHash(passwordEncoder.encode(request.getPassword()))
             .fullName(request.getFullName().trim())
-            .role(request.getRole().trim().toUpperCase())
+            .role(request.getRole().trim().toUpperCase(Locale.ROOT))
             .active(true)
             .firstAccess(true)
             .build();

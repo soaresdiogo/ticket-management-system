@@ -32,6 +32,7 @@ public class SwaggerConfig {
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT")
-                        .description("Enter the JWT access token obtained from POST /auth/verify-mfa or POST /auth/refresh")));
+                        .description(
+                            "Enter the JWT access token from POST /auth/verify-mfa or POST /auth/refresh")));
     }
 }

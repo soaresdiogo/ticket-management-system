@@ -94,8 +94,10 @@ class JwtKeyServiceTest {
             KeyPair pair = gen.generateKeyPair();
             String privatePem = toPemPrivate(pair.getPrivate());
             String publicPem = toPemPublic(pair.getPublic());
-            String privateB64 = Base64.getEncoder().encodeToString(privatePem.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            String publicB64 = Base64.getEncoder().encodeToString(publicPem.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String privateB64 = Base64.getEncoder()
+                .encodeToString(privatePem.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String publicB64 = Base64.getEncoder()
+                .encodeToString(publicPem.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
             when(environment.getProperty("AUTH_JWT_PRIVATE_KEY")).thenReturn(privateB64);
             when(environment.getProperty("AUTH_JWT_PUBLIC_KEY")).thenReturn(publicB64);

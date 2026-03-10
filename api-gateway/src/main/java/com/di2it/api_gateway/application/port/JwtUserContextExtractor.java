@@ -11,6 +11,7 @@ import java.util.Optional;
  * Implementations read standard claims (sub, role, tenantId) and return a value object
  * suitable for header propagation.
  */
+@FunctionalInterface
 public interface JwtUserContextExtractor {
 
     /**

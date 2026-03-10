@@ -5,6 +5,7 @@ import com.di2it.ticket_service.application.event.TicketStatusChangedEvent;
 /**
  * Port for publishing ticket status changed events (e.g. to Kafka).
  */
+@FunctionalInterface
 public interface PublishTicketStatusChangedPort {
 
     /**

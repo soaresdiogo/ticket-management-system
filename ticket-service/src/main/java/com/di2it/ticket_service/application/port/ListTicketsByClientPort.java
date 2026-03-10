@@ -10,6 +10,7 @@ import java.util.UUID;
 /**
  * Port to list tickets for a given client (current user).
  */
+@FunctionalInterface
 public interface ListTicketsByClientPort {
 
     Page<Ticket> findByClientId(UUID clientId, Pageable pageable);

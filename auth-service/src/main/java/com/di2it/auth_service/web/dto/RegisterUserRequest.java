@@ -25,12 +25,14 @@ public class RegisterUserRequest {
     @Size(max = 255)
     private String email;
 
-    @Schema(description = "Password (min 8 chars, 1 upper, 1 lower, 1 digit, 1 special)", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+        description = "Password (min 8 chars, 1 upper, 1 lower, 1 digit, 1 special)",
+        requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 100)
     @Pattern(
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
-        message = "Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number and 1 special character"
+        message = "Password must be at least 8 characters with 1 upper, 1 lower, 1 number and 1 special"
     )
     private String password;
 

@@ -35,7 +35,8 @@ class AuthServicePublicKeyProviderTest {
     }
 
     private static String jsonResponse(String publicKey) {
-        String escaped = publicKey == null ? "null" : "\"" + publicKey.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\"";
+        String escaped = publicKey == null ? "null"
+                : "\"" + publicKey.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\"";
         return "{\"publicKey\":" + escaped + ",\"keyId\":\"key-1\",\"algorithm\":\"RS256\"}";
     }
 
@@ -72,7 +73,8 @@ class AuthServicePublicKeyProviderTest {
             properties.setUrl("http://auth:8081/");
             ExchangeFunction exchange = request -> Mono.just(okJson(jsonResponse(PEM)));
             AuthPublicKeyProvider provider = new AuthServicePublicKeyProvider(properties,
-                    WebClient.builder().exchangeFunction(exchange));
+                    WebClient.builder()
+                            .exchangeFunction(exchange));
 
             StepVerifier.create(provider.getPublicKeyPem())
                     .expectNext(PEM)
@@ -82,7 +84,8 @@ class AuthServicePublicKeyProviderTest {
         @Test
         @DisplayName("errors when auth-service returns empty publicKey")
         void emptyPublicKey_errors() {
-            ExchangeFunction exchange = request -> Mono.just(okJson("{\"publicKey\":\"\",\"keyId\":null,\"algorithm\":null}"));
+            ExchangeFunction exchange = request -> Mono.just(
+                    okJson("{\"publicKey\":\"\",\"keyId\":null,\"algorithm\":null}"));
             AuthPublicKeyProvider provider = new AuthServicePublicKeyProvider(properties,
                     WebClient.builder().exchangeFunction(exchange));
 
@@ -94,7 +97,8 @@ class AuthServicePublicKeyProviderTest {
         @Test
         @DisplayName("errors when auth-service returns null publicKey")
         void nullPublicKey_errors() {
-            ExchangeFunction exchange = request -> Mono.just(okJson("{\"publicKey\":null,\"keyId\":null,\"algorithm\":null}"));
+            ExchangeFunction exchange = request -> Mono.just(
+                    okJson("{\"publicKey\":null,\"keyId\":null,\"algorithm\":null}"));
             AuthPublicKeyProvider provider = new AuthServicePublicKeyProvider(properties,
                     WebClient.builder().exchangeFunction(exchange));
 

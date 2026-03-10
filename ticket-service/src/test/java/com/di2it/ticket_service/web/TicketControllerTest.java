@@ -186,7 +186,8 @@ class TicketControllerTest {
             assertThat(result.getBody().getContent()).hasSize(1);
             assertThat(result.getBody().getContent().get(0).getId()).isEqualTo(savedTicket.getId());
             assertThat(result.getBody().getTotalElements()).isEqualTo(1);
-            verify(listAllTicketsUseCase).listByTenant(eq(tenantId), any(org.springframework.data.domain.Pageable.class));
+            verify(listAllTicketsUseCase).listByTenant(
+                eq(tenantId), any(org.springframework.data.domain.Pageable.class));
         }
 
         @Test

@@ -15,4 +15,4 @@ for hook in "$HOOKS_SRC"/*; do
   chmod +x "$dest"
   echo "Installed hook: $name"
 done
-echo "Done. Pre-commit will run: make test"
+echo "Done. Pre-commit will run: make lint (Checkstyle, PMD, SpotBugs)"

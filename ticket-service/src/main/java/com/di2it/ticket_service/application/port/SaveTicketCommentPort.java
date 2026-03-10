@@ -5,6 +5,7 @@ import com.di2it.ticket_service.domain.entity.TicketComment;
 /**
  * Port for persisting a ticket comment.
  */
+@FunctionalInterface
 public interface SaveTicketCommentPort {
 
     /**
