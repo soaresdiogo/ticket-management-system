@@ -1,7 +1,7 @@
 # TMS — One-command build, test, and run (for new developers)
 # Requires: JDK 25, Maven 3.x, Docker & docker-compose
 
-.PHONY: help build clean install test docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file env-check
+.PHONY: help build clean install test docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file env-check install-hooks
 
 help:
 	@echo "TMS — Ticket Management System"
@@ -9,6 +9,7 @@ help:
 	@echo "  make install      - Build all services in cascade (Maven reactor)"
 	@echo "  make test        - Run tests for all services"
 	@echo "  make clean       - Clean all service targets"
+	@echo "  make install-hooks - Install git pre-commit hook (runs 'make test' before each commit)"
 	@echo "  make docker-up   - Start Postgres, Redis, Kafka (docker-compose)"
 	@echo "  make docker-down - Stop docker-compose"
 	@echo "  make init-dbs    - Run docker/init-dbs.sql (create DBs + schema; use if not first start)"
@@ -19,7 +20,7 @@ help:
 	@echo "  make run-file    - Run File Service"
 	@echo "  make env-check   - Check .env exists (copy .env.example to .env)"
 	@echo ""
-	@echo "First time: cp .env.example .env && make docker-up && make init-dbs && make install"
+	@echo "First time: cp .env.example .env && make docker-up && make init-dbs && make install && make install-hooks"
 
 # Use Maven wrapper so Maven does not need to be installed (./mvnw downloads it on first run)
 MVN := $(shell command -v mvn 2>/dev/null || echo ./mvnw)
@@ -33,6 +34,13 @@ test:
 
 clean:
 	$(MVN) -f pom.xml clean
+
+# Install git pre-commit hook so "make test" runs automatically before each commit (like Husky in Node).
+install-hooks:
+	@mkdir -p .git/hooks
+	@cp scripts/git-hooks/pre-commit .git/hooks/pre-commit
+	@chmod +x .git/hooks/pre-commit
+	@echo "Pre-commit hook installed. 'make test' will run before each commit."
 
 docker-up:
 	docker compose up -d

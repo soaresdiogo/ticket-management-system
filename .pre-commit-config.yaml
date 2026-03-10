@@ -1,6 +1,7 @@
 # Pre-commit hook: run "make test" before each commit.
-# Install: pre-commit install
-# Run manually: pre-commit run --all-files
+# Install (this repo): make install-hooks   (no Python required; uses scripts/git-hooks/pre-commit)
+# Or with pre-commit framework: pre-commit install
+# Run manually: pre-commit run --all-files  (or: make test)
 # https://pre-commit.com/
 
 repos:

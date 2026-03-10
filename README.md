@@ -84,6 +84,9 @@ make init-dbs
 # 4. Build all services in cascade (root Maven reactor)
 make install
 # or: mvn -f pom.xml clean install
+
+# 5. (Optional) Install git hook so tests run before every commit (like Husky in Node)
+make install-hooks
 ```
 
 Optional: run a single service with env loaded from `.env`:
@@ -149,6 +152,18 @@ Configure each service via `src/main/resources/application.properties` or enviro
 | MinIO API  | http://localhost:9000       | S3-compatible API        |
 | MinIO Console | http://localhost:9001    | Web UI (user: `tms`, pass: `tms12345`) |
 
+## Git hooks (run tests before commit)
+
+To run `make test` automatically before each commit (similar to Husky in Node projects), install the pre-commit hook once:
+
+```bash
+make install-hooks
+```
+
+This copies `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit`. After that, every `git commit` will run the full test suite first; the commit is aborted if tests fail. No Python or Node required.
+
+Alternatively, if you use the [pre-commit](https://pre-commit.com/) framework, run `pre-commit install` and it will use `.pre-commit-config.yaml` (which also runs `make test`).
+
 ## Build and update all projects (cascade)
 
 From the repo root:
@@ -169,9 +184,10 @@ make clean
 ticket-management-system/
 ├── pom.xml                # Root Maven reactor (build all in cascade)
 ├── .env.example           # Env template (copy to .env; matches docker-compose)
-├── Makefile               # build, docker-up, run-* targets
+├── Makefile               # build, docker-up, run-*, install-hooks
 ├── scripts/
-│   └── run-with-env.sh    # Run a service with .env loaded
+│   ├── run-with-env.sh   # Run a service with .env loaded
+│   └── git-hooks/        # pre-commit hook (installed via make install-hooks)
 ├── api-gateway/           # Spring Cloud Gateway
 ├── auth-service/          # Authentication & user management
 ├── ticket-service/        # Ticket domain

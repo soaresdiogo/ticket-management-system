@@ -1,9 +1,6 @@
 #!/bin/sh
-# Pre-commit hook: run "make test" before each commit.
-# Install: run ./scripts/setup-hooks.sh from repo root (or symlink this file to .git/hooks/pre-commit)
-
+# Pre-commit hook: run tests before allowing commit.
+# Installed by: make install-hooks
+# Runs from repo root so "make test" works regardless of current directory.
 set -e
-cd "$(git rev-parse --show-toplevel)" || exit 1
-exec 1>&2
-echo "Running: make test"
-make test
+cd "$(git rev-parse --show-toplevel)" && make test
