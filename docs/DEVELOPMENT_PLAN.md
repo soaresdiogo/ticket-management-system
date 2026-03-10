@@ -55,7 +55,7 @@ Done after Auth so the JWT filter can be tested with real tokens.
 - [X] **GET /tickets/all** — List all tickets (role ACCOUNTANT)
 - [X] **PATCH /tickets/{id}/status** — Change status; on change, publish event to Kafka topic `ticket.status.changed` (payload: ticketId, userId, oldStatus, newStatus, timestamp)
 - [X] **POST /tickets/{id}/comments** — Add comment
-- [ ] Configure Kafka producer and event payload
+- [X] Configure Kafka producer and event payload
 
 ---
 

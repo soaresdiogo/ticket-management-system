@@ -4,6 +4,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        delivery.timeout.ms: 120000
 
 # Ticket service Kafka topic for status change events
 ticket-service:
