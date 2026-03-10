@@ -1,3 +1,16 @@
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+
+# Ticket service Kafka topic for status change events
+ticket-service:
+  kafka:
+    topic:
+      status-changed: ticket.status.changed
+
 # Spring Doc OpenAPI / Swagger (merged with application.properties)
 springdoc:
   api-docs:

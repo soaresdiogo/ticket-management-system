@@ -1,9 +1,12 @@
 package com.di2it.ticket_service.web;
 
+import com.di2it.ticket_service.application.usecase.ChangeTicketStatusUseCase;
 import com.di2it.ticket_service.application.usecase.CreateTicketUseCase;
 import com.di2it.ticket_service.application.usecase.ListAllTicketsUseCase;
 import com.di2it.ticket_service.application.usecase.ListTicketsUseCase;
 import com.di2it.ticket_service.domain.entity.Ticket;
+import com.di2it.ticket_service.web.dto.ChangeTicketStatusRequest;
+import com.di2it.ticket_service.web.dto.ChangeTicketStatusResponse;
 import com.di2it.ticket_service.web.dto.CreateTicketRequest;
 import com.di2it.ticket_service.web.dto.CreateTicketResponse;
 import com.di2it.ticket_service.web.dto.ListTicketsResponse;
@@ -45,6 +48,9 @@ class TicketControllerTest {
 
     @Mock
     private ListAllTicketsUseCase listAllTicketsUseCase;
+
+    @Mock
+    private ChangeTicketStatusUseCase changeTicketStatusUseCase;
 
     @InjectMocks
     private TicketController ticketController;
@@ -196,6 +202,78 @@ class TicketControllerTest {
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             assertThat(result.getBody()).isNull();
             verify(listAllTicketsUseCase, never()).listByTenant(any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("changeTicketStatus")
+    class ChangeTicketStatus {
+
+        @Test
+        @DisplayName("returns 200 and response body when status is changed")
+        void returns200AndBodyWhenSuccess() {
+            UUID ticketId = savedTicket.getId();
+            ChangeTicketStatusRequest request = ChangeTicketStatusRequest.builder()
+                .status("IN_PROGRESS")
+                .build();
+            when(changeTicketStatusUseCase.changeStatus(any())).thenReturn(java.util.Optional.of(savedTicket));
+
+            ResponseEntity<ChangeTicketStatusResponse> result = ticketController.changeTicketStatus(
+                ticketId, clientId, "ACCOUNTANT", tenantId, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getId()).isEqualTo(ticketId);
+            assertThat(result.getBody().getStatus()).isEqualTo(savedTicket.getStatus());
+            assertThat(result.getBody().getUpdatedAt()).isNotNull();
+            verify(changeTicketStatusUseCase).changeStatus(any());
+        }
+
+        @Test
+        @DisplayName("returns 404 when ticket not found")
+        void returns404WhenTicketNotFound() {
+            UUID ticketId = UUID.randomUUID();
+            ChangeTicketStatusRequest request = ChangeTicketStatusRequest.builder()
+                .status("RESOLVED")
+                .build();
+            when(changeTicketStatusUseCase.changeStatus(any())).thenReturn(java.util.Optional.empty());
+
+            ResponseEntity<ChangeTicketStatusResponse> result = ticketController.changeTicketStatus(
+                ticketId, clientId, "ACCOUNTANT", tenantId, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+            assertThat(result.getBody()).isNull();
+            verify(changeTicketStatusUseCase).changeStatus(any());
+        }
+
+        @Test
+        @DisplayName("returns 403 when role is not ACCOUNTANT")
+        void returns403WhenNotAccountant() {
+            ChangeTicketStatusRequest request = ChangeTicketStatusRequest.builder()
+                .status("IN_PROGRESS")
+                .build();
+
+            ResponseEntity<ChangeTicketStatusResponse> result = ticketController.changeTicketStatus(
+                savedTicket.getId(), clientId, "CLIENT", tenantId, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(result.getBody()).isNull();
+            verify(changeTicketStatusUseCase, never()).changeStatus(any());
+        }
+
+        @Test
+        @DisplayName("returns 403 when role is null")
+        void returns403WhenRoleNull() {
+            ChangeTicketStatusRequest request = ChangeTicketStatusRequest.builder()
+                .status("IN_PROGRESS")
+                .build();
+
+            ResponseEntity<ChangeTicketStatusResponse> result = ticketController.changeTicketStatus(
+                savedTicket.getId(), clientId, null, tenantId, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(result.getBody()).isNull();
+            verify(changeTicketStatusUseCase, never()).changeStatus(any());
         }
     }
 }

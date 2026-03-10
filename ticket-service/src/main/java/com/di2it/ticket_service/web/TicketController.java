@@ -1,13 +1,18 @@
 package com.di2it.ticket_service.web;
 
+import com.di2it.ticket_service.application.usecase.ChangeTicketStatusCommand;
+import com.di2it.ticket_service.application.usecase.ChangeTicketStatusUseCase;
 import com.di2it.ticket_service.application.usecase.CreateTicketCommand;
 import com.di2it.ticket_service.application.usecase.CreateTicketUseCase;
 import com.di2it.ticket_service.application.usecase.ListAllTicketsUseCase;
 import com.di2it.ticket_service.application.usecase.ListTicketsUseCase;
 import com.di2it.ticket_service.domain.entity.Ticket;
+import com.di2it.ticket_service.web.dto.ChangeTicketStatusRequest;
+import com.di2it.ticket_service.web.dto.ChangeTicketStatusResponse;
 import com.di2it.ticket_service.web.dto.CreateTicketRequest;
 import com.di2it.ticket_service.web.dto.CreateTicketResponse;
 import com.di2it.ticket_service.web.dto.ListTicketsResponse;
+import com.di2it.ticket_service.web.mapper.ChangeTicketStatusResponseMapper;
 import com.di2it.ticket_service.web.mapper.CreateTicketResponseMapper;
 import com.di2it.ticket_service.web.mapper.ListTicketsResponseMapper;
 
@@ -25,6 +30,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -48,15 +55,18 @@ public class TicketController {
     private final CreateTicketUseCase createTicketUseCase;
     private final ListTicketsUseCase listTicketsUseCase;
     private final ListAllTicketsUseCase listAllTicketsUseCase;
+    private final ChangeTicketStatusUseCase changeTicketStatusUseCase;
 
     public TicketController(
         CreateTicketUseCase createTicketUseCase,
         ListTicketsUseCase listTicketsUseCase,
-        ListAllTicketsUseCase listAllTicketsUseCase
+        ListAllTicketsUseCase listAllTicketsUseCase,
+        ChangeTicketStatusUseCase changeTicketStatusUseCase
     ) {
         this.createTicketUseCase = createTicketUseCase;
         this.listTicketsUseCase = listTicketsUseCase;
         this.listAllTicketsUseCase = listAllTicketsUseCase;
+        this.changeTicketStatusUseCase = changeTicketStatusUseCase;
     }
 
     /**
@@ -138,5 +148,41 @@ public class TicketController {
         ListTicketsResponse response = ListTicketsResponseMapper.toResponse(
             listAllTicketsUseCase.listByTenant(tenantId, pageable));
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Change ticket status. Restricted to ACCOUNTANT role; ticket must belong to the tenant.
+     * On status change, publishes event to Kafka topic ticket.status.changed.
+     */
+    @Operation(
+        summary = "Change ticket status (ACCOUNTANT)",
+        description = "Updates the ticket status. Requires X-User-Role=ACCOUNTANT and X-Tenant-Id. On change, publishes event to Kafka topic ticket.status.changed. Returns 404 if ticket not found or not in tenant."
+    )
+    @ApiResponse(responseCode = "200", description = "Status updated (or unchanged)")
+    @ApiResponse(responseCode = "400", description = "Invalid request body (e.g. blank status)")
+    @ApiResponse(responseCode = "403", description = "Forbidden: requires ACCOUNTANT role")
+    @ApiResponse(responseCode = "404", description = "Ticket not found or not in tenant")
+    @SecurityRequirement(name = "bearer-jwt")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ChangeTicketStatusResponse> changeTicketStatus(
+        @Parameter(description = "Ticket ID") @PathVariable UUID id,
+        @RequestHeader(WebConstants.HEADER_USER_ID) UUID userId,
+        @RequestHeader(value = WebConstants.HEADER_USER_ROLE, required = false) String role,
+        @RequestHeader(WebConstants.HEADER_TENANT_ID) UUID tenantId,
+        @Valid @RequestBody ChangeTicketStatusRequest request
+    ) {
+        if (!WebConstants.ROLE_ACCOUNTANT.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        ChangeTicketStatusCommand command = ChangeTicketStatusCommand.builder()
+            .ticketId(id)
+            .tenantId(tenantId)
+            .userId(userId)
+            .newStatus(request.getStatus())
+            .build();
+        return changeTicketStatusUseCase.changeStatus(command)
+            .map(ChangeTicketStatusResponseMapper::toResponse)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 }
