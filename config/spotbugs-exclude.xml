@@ -28,4 +28,9 @@
         <Class name="com.di2it.ticket_service.web.TicketController"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <!-- EI_EXPOSE_REP2: false positive for Spring-injected MinIO client and config -->
+    <Match>
+        <Class name="com.di2it.file_service.infrastructure.storage.MinioObjectStorageAdapter"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>
