@@ -61,7 +61,7 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 ## Phase 4 — File Service (3–4 days)
 
-- [ ] Flyway + `attachments`, `download_log` (or align with init-dbs.sql); configure MinIO client
+- [X] Flyway + `attachments`, `download_log` (or align with init-dbs.sql); configure MinIO client
 - [ ] **POST /files/upload** — Multipart upload to MinIO, save metadata in Postgres, publish Kafka event `ticket.document.uploaded`
 - [ ] **GET /files/{id}/download** — Return presigned MinIO URL (e.g. 15 min TTL)
 - [ ] **GET /files/ticket/{ticketId}** — List files for a ticket

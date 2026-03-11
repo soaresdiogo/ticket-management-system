@@ -40,6 +40,7 @@
         <checkstyle.version>10.21.2</checkstyle.version>
         <pmd.version>3.28.0</pmd.version>
         <spotbugs.version>4.9.8.2</spotbugs.version>
+        <minio.version>8.6.0</minio.version>
     </properties>
 
     <dependencyManagement>
@@ -91,6 +92,11 @@
                 <artifactId>jjwt-jackson</artifactId>
                 <version>${jjwt.version}</version>
                 <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
