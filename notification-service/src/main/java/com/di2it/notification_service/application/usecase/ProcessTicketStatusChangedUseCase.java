@@ -2,6 +2,7 @@ package com.di2it.notification_service.application.usecase;
 
 import com.di2it.notification_service.application.port.PersistEmailLogPort;
 import com.di2it.notification_service.application.port.PersistNotificationPort;
+import com.di2it.notification_service.application.port.PushNotificationPort;
 import com.di2it.notification_service.application.port.ResolveUserEmailPort;
 import com.di2it.notification_service.application.port.SendNotificationEmailPort;
 import com.di2it.notification_service.domain.entity.EmailLog;
@@ -24,17 +25,20 @@ public class ProcessTicketStatusChangedUseCase {
     private final PersistEmailLogPort persistEmailLogPort;
     private final ResolveUserEmailPort resolveUserEmailPort;
     private final SendNotificationEmailPort sendNotificationEmailPort;
+    private final PushNotificationPort pushNotificationPort;
 
     public ProcessTicketStatusChangedUseCase(
         PersistNotificationPort persistNotificationPort,
         PersistEmailLogPort persistEmailLogPort,
         ResolveUserEmailPort resolveUserEmailPort,
-        SendNotificationEmailPort sendNotificationEmailPort
+        SendNotificationEmailPort sendNotificationEmailPort,
+        PushNotificationPort pushNotificationPort
     ) {
         this.persistNotificationPort = persistNotificationPort;
         this.persistEmailLogPort = persistEmailLogPort;
         this.resolveUserEmailPort = resolveUserEmailPort;
         this.sendNotificationEmailPort = sendNotificationEmailPort;
+        this.pushNotificationPort = pushNotificationPort;
     }
 
     /**
@@ -61,6 +65,7 @@ public class ProcessTicketStatusChangedUseCase {
             .build();
 
         Notification saved = persistNotificationPort.save(notification);
+        pushNotificationPort.push(saved);
 
         resolveUserEmailPort.resolveEmail(clientId).ifPresent(email -> {
             String subject = title;

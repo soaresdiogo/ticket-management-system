@@ -2,6 +2,7 @@ package com.di2it.notification_service.application.usecase;
 
 import com.di2it.notification_service.application.port.PersistEmailLogPort;
 import com.di2it.notification_service.application.port.PersistNotificationPort;
+import com.di2it.notification_service.application.port.PushNotificationPort;
 import com.di2it.notification_service.application.port.ResolveUserEmailPort;
 import com.di2it.notification_service.application.port.SendNotificationEmailPort;
 import com.di2it.notification_service.domain.entity.Notification;
@@ -38,6 +39,9 @@ class ProcessTicketStatusChangedUseCaseTest {
 
     @Mock
     private SendNotificationEmailPort sendNotificationEmailPort;
+
+    @Mock
+    private PushNotificationPort pushNotificationPort;
 
     @InjectMocks
     private ProcessTicketStatusChangedUseCase useCase;

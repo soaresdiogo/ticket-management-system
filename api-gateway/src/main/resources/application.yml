@@ -46,3 +46,8 @@ spring:
               uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
               predicates:
                 - Path=/notifications/**
+
+            - id: notification-service-ws
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/ws/**
