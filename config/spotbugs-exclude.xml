@@ -38,6 +38,10 @@
         <Class name="com.di2it.file_service.application.usecase.UploadFileUseCase"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Class name="com.di2it.file_service.application.usecase.GetFileDownloadUrlUseCase"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
     <!-- EI_EXPOSE_REP2: false positive for Spring-injected Kafka publisher -->
     <Match>
         <Class name="com.di2it.file_service.infrastructure.messaging.KafkaDocumentUploadedPublisher"/>

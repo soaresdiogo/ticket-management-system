@@ -1,5 +1,6 @@
 package com.di2it.file_service.web;
 
+import com.di2it.file_service.domain.exception.AttachmentNotFoundException;
 import com.di2it.file_service.domain.exception.InvalidFileUploadException;
 
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleInvalidFileUpload(InvalidFileUploadException ex) {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AttachmentNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleAttachmentNotFound(AttachmentNotFoundException ex) {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
             .body(Map.of("message", ex.getMessage()));
     }
 }

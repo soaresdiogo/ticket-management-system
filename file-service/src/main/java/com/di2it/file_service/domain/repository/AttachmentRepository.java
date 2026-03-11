@@ -14,6 +14,8 @@ public interface AttachmentRepository extends JpaRepository<Attachment, UUID> {
 
     List<Attachment> findByTicketIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID ticketId);
 
+    List<Attachment> findByTicketIdAndTenantIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID ticketId, UUID tenantId);
+
     Optional<Attachment> findByIdAndTenantIdAndDeletedAtIsNull(UUID id, UUID tenantId);
 
     boolean existsByIdAndTenantId(UUID id, UUID tenantId);
