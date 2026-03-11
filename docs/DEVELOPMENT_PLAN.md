@@ -63,9 +63,9 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 - [X] Flyway + `attachments`, `download_log` (or align with init-dbs.sql); configure MinIO client
 - [X] **POST /files/upload** — Multipart upload to MinIO, save metadata in Postgres, publish Kafka event `ticket.document.uploaded`
-- [ ] **GET /files/{id}/download** — Return presigned MinIO URL (e.g. 15 min TTL)
-- [ ] **GET /files/ticket/{ticketId}** — List files for a ticket
-- [X] Validations: max size, allowed types (e.g. pdf, jpg, png, xlsx)
+- [X] **GET /files/{id}/download** — Return presigned MinIO URL (e.g. 15 min TTL)
+- [X] **GET /files/ticket/{ticketId}** — List files for a ticket
+- [X] Validations: max size, allowed types (e.g. pdf, jpg, png, xlsx) — enforced in UploadFileUseCase via UploadProperties
 
 ---
 
