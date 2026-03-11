@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -87,7 +88,7 @@ class ProcessTicketStatusChangedUseCaseTest {
         assertThat(captured.getReferenceId()).isEqualTo(ticketId);
         assertThat(captured.getMessage()).contains("Processing");
 
-        verify(sendNotificationEmailPort).send("client@example.com", captured.getTitle(), any());
+        verify(sendNotificationEmailPort).send(eq("client@example.com"), eq(captured.getTitle()), any());
         verify(persistEmailLogPort).save(any());
     }
 
