@@ -33,4 +33,14 @@
         <Class name="com.di2it.file_service.infrastructure.storage.MinioObjectStorageAdapter"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <!-- EI_EXPOSE_REP2: false positive for Spring-injected use case dependencies -->
+    <Match>
+        <Class name="com.di2it.file_service.application.usecase.UploadFileUseCase"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <!-- EI_EXPOSE_REP2: false positive for Spring-injected Kafka publisher -->
+    <Match>
+        <Class name="com.di2it.file_service.infrastructure.messaging.KafkaDocumentUploadedPublisher"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>
