@@ -18,7 +18,9 @@ import java.util.UUID;
 public class TicketStatusChangedEvent {
 
     private UUID ticketId;
+    private UUID tenantId;
     private UUID userId;
+    private UUID clientId;
     private String oldStatus;
     private String newStatus;
     private Instant timestamp;

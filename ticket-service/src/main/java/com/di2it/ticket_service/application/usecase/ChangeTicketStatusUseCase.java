@@ -59,7 +59,9 @@ public class ChangeTicketStatusUseCase {
 
         TicketStatusChangedEvent event = TicketStatusChangedEvent.builder()
             .ticketId(updated.getId())
+            .tenantId(updated.getTenantId())
             .userId(command.getUserId())
+            .clientId(updated.getClientId())
             .oldStatus(oldStatus)
             .newStatus(newStatus)
             .timestamp(Instant.now())
