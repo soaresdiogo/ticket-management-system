@@ -47,4 +47,17 @@
         <Class name="com.di2it.file_service.infrastructure.messaging.KafkaDocumentUploadedPublisher"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <!-- EI_EXPOSE_REP2: false positive for Spring-injected use case and WebSocket adapter -->
+    <Match>
+        <Class name="com.di2it.notification_service.application.usecase.ProcessTicketStatusChangedUseCase"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.di2it.notification_service.application.usecase.ProcessDocumentUploadedUseCase"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.di2it.notification_service.infrastructure.websocket.WebSocketPushNotificationAdapter"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>

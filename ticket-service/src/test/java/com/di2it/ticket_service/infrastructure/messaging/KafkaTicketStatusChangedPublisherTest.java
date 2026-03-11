@@ -39,10 +39,14 @@ class KafkaTicketStatusChangedPublisherTest {
     void setUp() {
         publisher = new KafkaTicketStatusChangedPublisher(kafkaTemplate, payloadMapper, TOPIC);
         UUID ticketId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        UUID clientId = UUID.randomUUID();
         event = TicketStatusChangedEvent.builder()
             .ticketId(ticketId)
+            .tenantId(tenantId)
             .userId(userId)
+            .clientId(clientId)
             .oldStatus("OPEN")
             .newStatus("IN_PROGRESS")
             .timestamp(Instant.now())
@@ -56,7 +60,9 @@ class KafkaTicketStatusChangedPublisherTest {
             TicketStatusChangedPayload.EVENT_TYPE,
             TicketStatusChangedPayload.EVENT_VERSION,
             event.getTicketId(),
+            event.getTenantId(),
             event.getUserId(),
+            event.getClientId(),
             "OPEN",
             "IN_PROGRESS",
             event.getTimestamp()
@@ -72,7 +78,9 @@ class KafkaTicketStatusChangedPublisherTest {
         assertThat(sent.eventType()).isEqualTo(TicketStatusChangedPayload.EVENT_TYPE);
         assertThat(sent.eventVersion()).isEqualTo(TicketStatusChangedPayload.EVENT_VERSION);
         assertThat(sent.ticketId()).isEqualTo(event.getTicketId());
+        assertThat(sent.tenantId()).isEqualTo(event.getTenantId());
         assertThat(sent.userId()).isEqualTo(event.getUserId());
+        assertThat(sent.clientId()).isEqualTo(event.getClientId());
         assertThat(sent.oldStatus()).isEqualTo("OPEN");
         assertThat(sent.newStatus()).isEqualTo("IN_PROGRESS");
         assertThat(sent.timestamp()).isEqualTo(event.getTimestamp());

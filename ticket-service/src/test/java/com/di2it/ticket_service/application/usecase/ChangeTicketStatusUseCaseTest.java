@@ -136,7 +136,9 @@ class ChangeTicketStatusUseCaseTest {
             verify(publishStatusChangedPort).publish(eventCaptor.capture());
             TicketStatusChangedEvent event = eventCaptor.getValue();
             assertThat(event.getTicketId()).isEqualTo(ticketId);
+            assertThat(event.getTenantId()).isEqualTo(tenantId);
             assertThat(event.getUserId()).isEqualTo(userId);
+            assertThat(event.getClientId()).isEqualTo(ticket.getClientId());
             assertThat(event.getOldStatus()).isEqualTo("OPEN");
             assertThat(event.getNewStatus()).isEqualTo("IN_PROGRESS");
             assertThat(event.getTimestamp()).isNotNull();

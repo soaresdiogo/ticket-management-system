@@ -25,11 +25,15 @@ class TicketStatusChangedPayloadMapperTest {
     @DisplayName("toPayload maps event to payload with eventType and eventVersion")
     void toPayload_mapsEventToPayload() {
         UUID ticketId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        UUID clientId = UUID.randomUUID();
         Instant timestamp = Instant.parse("2025-03-10T12:00:00.000Z");
         TicketStatusChangedEvent event = TicketStatusChangedEvent.builder()
             .ticketId(ticketId)
+            .tenantId(tenantId)
             .userId(userId)
+            .clientId(clientId)
             .oldStatus("OPEN")
             .newStatus("IN_PROGRESS")
             .timestamp(timestamp)
@@ -41,7 +45,9 @@ class TicketStatusChangedPayloadMapperTest {
         assertThat(payload.eventType()).isEqualTo(TicketStatusChangedPayload.EVENT_TYPE);
         assertThat(payload.eventVersion()).isEqualTo(TicketStatusChangedPayload.EVENT_VERSION);
         assertThat(payload.ticketId()).isEqualTo(ticketId);
+        assertThat(payload.tenantId()).isEqualTo(tenantId);
         assertThat(payload.userId()).isEqualTo(userId);
+        assertThat(payload.clientId()).isEqualTo(clientId);
         assertThat(payload.oldStatus()).isEqualTo("OPEN");
         assertThat(payload.newStatus()).isEqualTo("IN_PROGRESS");
         assertThat(payload.timestamp()).isEqualTo(timestamp);

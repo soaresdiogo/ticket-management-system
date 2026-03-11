@@ -25,13 +25,17 @@ class TicketStatusChangedPayloadTest {
     @DisplayName("serializes to JSON with ISO-8601 timestamp")
     void serializesToJson() throws Exception {
         UUID ticketId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID tenantId = UUID.fromString("33333333-3333-3333-3333-333333333333");
         UUID userId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID clientId = UUID.fromString("44444444-4444-4444-4444-444444444444");
         Instant timestamp = Instant.parse("2025-03-10T12:00:00.000Z");
         TicketStatusChangedPayload payload = new TicketStatusChangedPayload(
             TicketStatusChangedPayload.EVENT_TYPE,
             TicketStatusChangedPayload.EVENT_VERSION,
             ticketId,
+            tenantId,
             userId,
+            clientId,
             "OPEN",
             "IN_PROGRESS",
             timestamp
@@ -42,7 +46,9 @@ class TicketStatusChangedPayloadTest {
         assertThat(json).contains("\"eventType\":\"TicketStatusChanged\"");
         assertThat(json).contains("\"eventVersion\":\"1.0\"");
         assertThat(json).contains("\"ticketId\":\"11111111-1111-1111-1111-111111111111\"");
+        assertThat(json).contains("\"tenantId\":\"33333333-3333-3333-3333-333333333333\"");
         assertThat(json).contains("\"userId\":\"22222222-2222-2222-2222-222222222222\"");
+        assertThat(json).contains("\"clientId\":\"44444444-4444-4444-4444-444444444444\"");
         assertThat(json).contains("\"oldStatus\":\"OPEN\"");
         assertThat(json).contains("\"newStatus\":\"IN_PROGRESS\"");
         assertThat(json).contains("2025-03-10T12:00:00.000Z");
@@ -54,7 +60,9 @@ class TicketStatusChangedPayloadTest {
         String json = """
             {"eventType":"TicketStatusChanged","eventVersion":"1.0",\
             "ticketId":"11111111-1111-1111-1111-111111111111",\
+            "tenantId":"33333333-3333-3333-3333-333333333333",\
             "userId":"22222222-2222-2222-2222-222222222222",\
+            "clientId":"44444444-4444-4444-4444-444444444444",\
             "oldStatus":"OPEN","newStatus":"IN_PROGRESS",\
             "timestamp":"2025-03-10T12:00:00.000Z"}
             """;
@@ -66,7 +74,9 @@ class TicketStatusChangedPayloadTest {
                 TicketStatusChangedPayload::eventType,
                 TicketStatusChangedPayload::eventVersion,
                 p -> p.ticketId().toString(),
+                p -> p.tenantId().toString(),
                 p -> p.userId().toString(),
+                p -> p.clientId().toString(),
                 TicketStatusChangedPayload::oldStatus,
                 TicketStatusChangedPayload::newStatus,
                 TicketStatusChangedPayload::timestamp
@@ -75,7 +85,9 @@ class TicketStatusChangedPayloadTest {
                 TicketStatusChangedPayload.EVENT_TYPE,
                 TicketStatusChangedPayload.EVENT_VERSION,
                 "11111111-1111-1111-1111-111111111111",
+                "33333333-3333-3333-3333-333333333333",
                 "22222222-2222-2222-2222-222222222222",
+                "44444444-4444-4444-4444-444444444444",
                 "OPEN",
                 "IN_PROGRESS",
                 Instant.parse("2025-03-10T12:00:00.000Z")

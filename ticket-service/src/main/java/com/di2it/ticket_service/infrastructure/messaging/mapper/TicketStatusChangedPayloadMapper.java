@@ -19,7 +19,9 @@ public class TicketStatusChangedPayloadMapper {
             TicketStatusChangedPayload.EVENT_TYPE,
             TicketStatusChangedPayload.EVENT_VERSION,
             event.getTicketId(),
+            event.getTenantId(),
             event.getUserId(),
+            event.getClientId(),
             event.getOldStatus(),
             event.getNewStatus(),
             event.getTimestamp()

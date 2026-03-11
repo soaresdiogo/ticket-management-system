@@ -71,11 +71,11 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 ## Phase 5 — Notification Service (3–4 days)
 
-- [ ] Kafka consumer for `ticket.status.changed` and `ticket.document.uploaded`
-- [ ] On event: send email via Resend (e.g. “Your ticket #123 has been updated to Processing”)
-- [ ] WebSocket endpoint (e.g. `/ws`): on Kafka event, push to Angular client
-- [ ] Persist notifications in DB (`notifications` table); optional `email_log` for sent emails
-- [ ] **PATCH /notifications/{id}/read** — Mark notification as read
+- [X] Kafka consumer for `ticket.status.changed` and `ticket.document.uploaded`
+- [X] On event: send email via Resend (e.g. “Your ticket #123 has been updated to Processing”)
+- [X] WebSocket endpoint (e.g. `/ws`): on Kafka event, push to Angular client
+- [X] Persist notifications in DB (`notifications` table); optional `email_log` for sent emails
+- [X] **PATCH /notifications/{id}/read** — Mark notification as read
 
 ---
 
