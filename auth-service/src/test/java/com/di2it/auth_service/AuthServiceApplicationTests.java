@@ -1,37 +1,40 @@
 package com.di2it.auth_service;
 
+import com.di2it.auth_service.application.port.MfaCodeStorage;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
-@Testcontainers
+import java.util.Optional;
+
 @SpringBootTest(properties = {
 	"auth.jwt.key-dir=target/test-keys"
 })
+@ContextConfiguration(classes = AuthServiceApplicationTests.TestConfig.class)
 class AuthServiceApplicationTests {
 
-	@Container
-	@ServiceConnection
-	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:17-alpine"))
-		.withDatabaseName("tms_auth")
-		.withUsername("tms")
-		.withPassword("tms");
+	@Configuration
+	static class TestConfig {
+		@Bean
+		@Primary
+		MfaCodeStorage mfaCodeStorage() {
+			return new MfaCodeStorage() {
+				@Override
+				public void store(String email, String code, long ttlSeconds) { }
 
-	@Container
-	static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-		.withExposedPorts(6379);
+				@Override
+				public Optional<String> get(String email) {
+					return Optional.empty();
+				}
 
-	@DynamicPropertySource
-	static void redisProperties(DynamicPropertyRegistry registry) {
-		registry.add("spring.data.redis.host", redis::getHost);
-		registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379).toString());
+				@Override
+				public void remove(String email) { }
+			};
+		}
 	}
 
 	@Test
