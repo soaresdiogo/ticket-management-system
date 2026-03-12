@@ -42,11 +42,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -69,6 +72,12 @@ class AuthControllerTest {
     @Mock
     private GetPublicKeyService getPublicKeyService;
 
+    @Mock
+    private com.di2it.auth_service.config.CookieProperties cookieProperties;
+
+    @Mock
+    private com.di2it.auth_service.config.JwtKeyProperties jwtKeyProperties;
+
     @InjectMocks
     private AuthController authController;
 
@@ -79,6 +88,13 @@ class AuthControllerTest {
     @BeforeEach
     void setUp() {
         tenantId = UUID.randomUUID();
+        // Lenient: only verifyMfa, refresh, and logout use cookie/jwt config; other tests do not.
+        lenient().when(cookieProperties.getRefreshTokenName()).thenReturn("tms_refresh_token");
+        lenient().when(cookieProperties.getPath()).thenReturn("/");
+        lenient().when(cookieProperties.isHttpOnly()).thenReturn(true);
+        lenient().when(cookieProperties.isSecure()).thenReturn(true);
+        lenient().when(cookieProperties.getSameSite()).thenReturn("Lax");
+        lenient().when(jwtKeyProperties.getRefreshTokenExpirySeconds()).thenReturn(604800L);
         request = RegisterUserRequest.builder()
             .email("user@example.com")
             .password("SecureP@ss1")
@@ -191,7 +207,8 @@ class AuthControllerTest {
             assertThat(result.getBody().getAccessToken()).isEqualTo("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...");
             assertThat(result.getBody().getTokenType()).isEqualTo("Bearer");
             assertThat(result.getBody().getExpiresIn()).isEqualTo(900);
-            assertThat(result.getBody().getRefreshToken()).isEqualTo("opaque.refresh.token");
+            assertThat(result.getBody().getRefreshTokenSet()).isTrue();
+            assertThat(result.getHeaders().get("Set-Cookie")).isNotNull();
             verify(verifyMfaService).verify("user@example.com", "123456", true);
         }
 
@@ -220,8 +237,8 @@ class AuthControllerTest {
     class Refresh {
 
         @Test
-        @DisplayName("returns 200 with access and refresh token when refresh succeeds")
-        void success() {
+        @DisplayName("returns 200 with access token and Set-Cookie when refresh succeeds with body")
+        void successWithBody() {
             RefreshRequest request = RefreshRequest.builder()
                 .refreshToken("opaque.refresh.token")
                 .build();
@@ -232,15 +249,57 @@ class AuthControllerTest {
                 .build();
             when(refreshTokenService.refresh("opaque.refresh.token")).thenReturn(serviceResult);
 
-            ResponseEntity<RefreshResponse> result = authController.refresh(request);
+            ResponseEntity<RefreshResponse> result = authController.refresh(null, request);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(result.getBody()).isNotNull();
             assertThat(result.getBody().getAccessToken()).isEqualTo("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...");
             assertThat(result.getBody().getTokenType()).isEqualTo("Bearer");
             assertThat(result.getBody().getExpiresIn()).isEqualTo(900);
-            assertThat(result.getBody().getRefreshToken()).isEqualTo("new.opaque.refresh.token");
+            assertThat(result.getBody().getRefreshTokenSet()).isTrue();
+            assertThat(result.getHeaders().get("Set-Cookie")).isNotNull();
             verify(refreshTokenService).refresh("opaque.refresh.token");
+        }
+
+        @Test
+        @DisplayName("returns 200 when refresh token comes from cookie")
+        void successWithCookie() {
+            RefreshResult serviceResult = RefreshResult.builder()
+                .accessToken("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...")
+                .expiresInSeconds(900)
+                .refreshToken("new.opaque.refresh.token")
+                .build();
+            when(refreshTokenService.refresh("cookie.refresh.token")).thenReturn(serviceResult);
+
+            ResponseEntity<RefreshResponse> result = authController.refresh("cookie.refresh.token", null);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            assertThat(result.getBody().getAccessToken()).isEqualTo("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...");
+            verify(refreshTokenService).refresh("cookie.refresh.token");
+        }
+
+        @Test
+        @DisplayName("throws when both cookie and body token are missing")
+        void missingToken() {
+            assertThatThrownBy(() -> authController.refresh(null, null))
+                .isInstanceOf(InvalidRefreshTokenException.class)
+                .hasMessageContaining("Missing refresh token");
+            verify(refreshTokenService, never()).refresh(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("logout")
+    class Logout {
+
+        @Test
+        @DisplayName("returns 200 and clears refresh cookie")
+        void success() {
+            ResponseEntity<Void> result = authController.logout();
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getHeaders().get("Set-Cookie")).isNotNull();
         }
     }
 

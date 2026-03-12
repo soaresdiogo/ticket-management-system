@@ -11,12 +11,15 @@ public final class RefreshResponseMapper {
     private RefreshResponseMapper() {
     }
 
+    /**
+     * Maps to response DTO. Refresh token is set in HttpOnly cookie by the controller, not in body.
+     */
     public static RefreshResponse toResponse(RefreshResult result) {
         return RefreshResponse.builder()
             .accessToken(result.getAccessToken())
             .tokenType(RefreshResponse.TOKEN_TYPE_BEARER)
             .expiresIn(result.getExpiresInSeconds())
-            .refreshToken(result.getRefreshToken())
+            .refreshTokenSet(true)
             .build();
     }
 }

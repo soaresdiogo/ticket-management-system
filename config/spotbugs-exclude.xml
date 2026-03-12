@@ -19,6 +19,11 @@
         <Class name="com.di2it.auth_service.infrastructure.refresh.RefreshTokenRedeemerImpl"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <!-- EI_EXPOSE_REP2: false positive for Spring-injected configuration properties (CookieProperties, JwtKeyProperties) -->
+    <Match>
+        <Class name="com.di2it.auth_service.web.AuthController"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
     <!-- EI_EXPOSE_REP2: false positive for Spring-injected beans -->
     <Match>
         <Class name="com.di2it.ticket_service.infrastructure.messaging.KafkaTicketStatusChangedPublisher"/>

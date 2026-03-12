@@ -1,7 +1,7 @@
 # TMS — One-command build, test, and run (for new developers)
 # Requires: JDK 25, Maven 3.x, Docker & docker-compose
 
-.PHONY: help build clean install test lint ci docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file env-check install-hooks
+.PHONY: help build clean install test lint ci docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file run-all stop-all env-check install-hooks
 
 help:
 	@echo "TMS — Ticket Management System"
@@ -20,6 +20,8 @@ help:
 	@echo "  make run-ticket  - Run Ticket Service"
 	@echo "  make run-notification - Run Notification Service"
 	@echo "  make run-file    - Run File Service"
+	@echo "  make run-all     - Run all backend services in background (gateway, auth, ticket, notification, file)"
+	@echo "  make stop-all    - Stop all backend services (kills processes on ports 8080-8084)"
 	@echo "  make env-check   - Check .env exists (copy .env.example to .env)"
 	@echo ""
 	@echo "First time: cp .env.example .env && make docker-up && make init-dbs && make install && make install-hooks"
@@ -88,3 +90,26 @@ run-notification:
 
 run-file:
 	./scripts/run-with-env.sh file-service spring-boot:run
+
+# Run all backend services in background. Ensure docker-up and init-dbs are done first.
+# Use 'make stop-all' to stop them (Ctrl+C often leaves Java processes running).
+run-all: env-check
+	@echo "Starting all services in background..."
+	@./scripts/run-with-env.sh api-gateway spring-boot:run & \
+	./scripts/run-with-env.sh auth-service spring-boot:run & \
+	./scripts/run-with-env.sh ticket-service spring-boot:run & \
+	./scripts/run-with-env.sh notification-service spring-boot:run & \
+	./scripts/run-with-env.sh file-service spring-boot:run & \
+	wait
+
+# Stop all TMS backend services by killing processes on ports 8080 (gateway), 8081 (auth), 8082 (ticket), 8083 (file), 8084 (notification).
+# Use this after run-all when Ctrl+C did not stop everything.
+stop-all:
+	@for port in 8080 8081 8082 8083 8084; do \
+		pid=$$(lsof -ti :$$port 2>/dev/null); \
+		if [ -n "$$pid" ]; then \
+			echo "Stopping process on port $$port (PID $$pid)..."; \
+			kill -9 $$pid 2>/dev/null || true; \
+		fi; \
+	done
+	@echo "Done. Ports 8080-8084 should be free."

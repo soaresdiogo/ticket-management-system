@@ -22,6 +22,6 @@ public class RefreshResponse {
     private String tokenType;
     @Schema(description = "Access token validity in seconds")
     private long expiresIn;
-    @Schema(description = "New refresh token (rotation)")
-    private String refreshToken;
+    @Schema(description = "New refresh token is set in HttpOnly cookie (rotation).")
+    private Boolean refreshTokenSet;
 }
