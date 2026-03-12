@@ -1,0 +1,35 @@
+@use '@angular/material' as mat;
+@use './styles/variables' as *;
+
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: (
+        font-family: 'Sora, sans-serif',
+      ),
+      density: 0,
+    )
+  );
+}
+
+body {
+  color-scheme: light;
+  margin: 0;
+  height: 100%;
+}
+
+/* Ensure Material outline form fields render their border on initial load (not only after focus).
+   Without this, the notched outline can fail to paint until the user interacts with the field. */
+.mat-mdc-form-field .mdc-notched-outline__leading,
+.mat-mdc-form-field .mdc-notched-outline__notch,
+.mat-mdc-form-field .mdc-notched-outline__trailing {
+  opacity: 1;
+}
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  border-right-style: hidden;
+}

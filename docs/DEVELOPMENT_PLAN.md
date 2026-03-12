@@ -81,17 +81,18 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 ## Phase 6 — Integration and E2E (2–3 days)
 
-- [ ] Run full stack with `docker-compose` (Postgres, Redis, Kafka, MinIO, Kafka UI, and all services)
-- [ ] End-to-end test via Postman: login → MFA → JWT → create ticket → upload file → change status → confirm email received
-- [ ] Verify events in Kafka UI (e.g. localhost:8090)
-- [ ] Fix cross-service communication and configuration
-- [ ] Security check: client cannot see tickets of another tenant
+- [X] Run full stack with `docker-compose` (Postgres, Redis, Kafka, MinIO, Kafka UI, and all services)
+- [X] End-to-end test via Postman: login → MFA → JWT → create ticket → upload file → change status → confirm email received
+- [X] Verify events in Kafka UI (e.g. localhost:8090)
+- [X] Fix cross-service communication and configuration
+- [X] Security check: client cannot see tickets of another tenant
 
 ---
 
 ## Phase 7 — Angular frontend (after backend is stable)
 
-- [ ] Authentication (login + MFA)
+- [X] Initial set up of Angular application into web-frontend path
+- [X] Authentication (login + MFA)
 - [ ] Client dashboard: list of tickets and status
 - [ ] Create ticket and upload files
 - [ ] Office dashboard: full list and filters
