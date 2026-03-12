@@ -59,7 +59,10 @@
     "tableSubject": "Subject",
     "tableClient": "Client",
     "tableStatus": "Status",
-    "tableAssignee": "Assignee"
+    "tableAssignee": "Assignee",
+    "ticketsLoading": "Loading tickets...",
+    "ticketsEmpty": "No tickets found.",
+    "ticketsError": "Failed to load tickets. Try again later."
   },
   "client": {
     "appName": "ContaFlow",

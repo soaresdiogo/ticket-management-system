@@ -62,7 +62,7 @@ class ListAllTicketsUseCaseTest {
             when(listAllTicketsPort.findByTenantId(eq(tenantId), eq(pageable)))
                 .thenReturn(expectedPage);
 
-            Page<Ticket> result = listAllTicketsUseCase.listByTenant(tenantId, pageable);
+            Page<Ticket> result = listAllTicketsUseCase.listByTenant(tenantId, pageable, null);
 
             assertThat(result).isEqualTo(expectedPage);
             assertThat(result.getContent()).hasSize(1);
@@ -77,11 +77,34 @@ class ListAllTicketsUseCaseTest {
             when(listAllTicketsPort.findByTenantId(eq(tenantId), eq(pageable)))
                 .thenReturn(emptyPage);
 
-            Page<Ticket> result = listAllTicketsUseCase.listByTenant(tenantId, pageable);
+            Page<Ticket> result = listAllTicketsUseCase.listByTenant(tenantId, pageable, null);
 
             assertThat(result.isEmpty()).isTrue();
             assertThat(result.getContent()).isEmpty();
             verify(listAllTicketsPort).findByTenantId(tenantId, pageable);
+        }
+
+        @Test
+        @DisplayName("when status is provided delegates to findByTenantIdAndStatus")
+        void whenStatusProvidedDelegatesToFindByTenantIdAndStatus() {
+            Ticket ticket = Ticket.builder()
+                .id(UUID.randomUUID())
+                .tenantId(tenantId)
+                .clientId(UUID.randomUUID())
+                .title("Issue")
+                .description("Description")
+                .status("OPEN")
+                .build();
+            Page<Ticket> expectedPage = new PageImpl<>(List.of(ticket), pageable, 1);
+
+            when(listAllTicketsPort.findByTenantIdAndStatus(eq(tenantId), eq("OPEN"), eq(pageable)))
+                .thenReturn(expectedPage);
+
+            Page<Ticket> result = listAllTicketsUseCase.listByTenant(tenantId, pageable, "OPEN");
+
+            assertThat(result).isEqualTo(expectedPage);
+            assertThat(result.getContent()).hasSize(1);
+            verify(listAllTicketsPort).findByTenantIdAndStatus(tenantId, "OPEN", pageable);
         }
     }
 }

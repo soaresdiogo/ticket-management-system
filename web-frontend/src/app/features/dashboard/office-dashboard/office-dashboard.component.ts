@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import type { OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,11 +7,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { TicketService } from '../../../core/services/ticket.service';
+import { OfficeTicketMapperService } from './services/office-ticket-mapper.service';
+import type { OfficeTicketRow } from './models/office-ticket-row.model';
+import {
+  type OfficeTicketStatusFilter,
+  OFFICE_TICKET_STATUS_FILTERS,
+} from './models/office-ticket-filter.model';
 
 export interface OfficeMetric {
   label: string;
@@ -19,21 +29,6 @@ export interface OfficeMetric {
   deltaUp: boolean;
   icon: string;
   theme: 'amber' | 'red' | 'green' | 'blue';
-}
-
-export interface OfficeTicketRow {
-  id: string;
-  subject: string;
-  sub: string;
-  client: string;
-  status: string;
-  statusClass: string;
-  assignee: string;
-  assigneeInitials: string;
-  sla: string;
-  slaPercent: number;
-  slaColor: string;
-  priority: 'high' | 'medium' | 'low';
 }
 
 export interface OfficeClientSummary {
@@ -50,6 +45,9 @@ export interface OfficeActivity {
   dotColor: string;
 }
 
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+
 @Component({
   selector: 'app-office-dashboard',
   standalone: true,
@@ -64,15 +62,81 @@ export interface OfficeActivity {
     MatInputModule,
     MatTableModule,
     MatMenuModule,
+    MatProgressSpinnerModule,
+    MatPaginatorModule,
     TranslateModule,
   ],
   templateUrl: './office-dashboard.component.html',
   styleUrl: './office-dashboard.component.scss',
 })
-export class OfficeDashboardComponent {
+export class OfficeDashboardComponent implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly ticketService = inject(TicketService);
+  private readonly officeTicketMapper = inject(OfficeTicketMapperService);
 
   readonly sidebarOpen = signal(false);
+  readonly ticketsLoading = signal(false);
+  readonly ticketsError = signal(false);
+  private readonly ticketsContent = signal<OfficeTicketRow[]>([]);
+  private readonly ticketsTotalElements = signal(0);
+  private readonly currentPage = signal(0);
+  readonly pageSize = signal(DEFAULT_PAGE_SIZE);
+  private readonly statusFilter = signal<OfficeTicketStatusFilter>('');
+
+  readonly ticketRows = computed(() => this.ticketsContent());
+  readonly totalElements = computed(() => this.ticketsTotalElements());
+  readonly pageIndex = computed(() => this.currentPage());
+  readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
+  readonly statusFilters = OFFICE_TICKET_STATUS_FILTERS;
+  readonly activeStatusFilter = computed(() => this.statusFilter());
+  readonly displayedColumns = ['id', 'subject', 'client', 'status', 'assignee', 'sla'];
+
+  readonly hasTickets = computed(() => this.ticketRows().length > 0);
+  readonly isEmpty = computed(() => !this.ticketsLoading() && !this.ticketsError() && this.ticketRows().length === 0);
+
+  ngOnInit(): void {
+    this.loadTickets();
+  }
+
+  loadTickets(): void {
+    this.ticketsLoading.set(true);
+    this.ticketsError.set(false);
+    const status = this.statusFilter() || undefined;
+    this.ticketService
+      .getAllTickets({
+        page: this.currentPage(),
+        size: this.pageSize(),
+        status,
+      })
+      .subscribe({
+        next: (res) => {
+          const rows = res.content.map((t) => this.officeTicketMapper.toRow(t));
+          this.ticketsContent.set(rows);
+          this.ticketsTotalElements.set(res.totalElements);
+          this.ticketsLoading.set(false);
+        },
+        error: () => {
+          this.ticketsError.set(true);
+          this.ticketsLoading.set(false);
+        },
+      });
+  }
+
+  setStatusFilter(value: OfficeTicketStatusFilter): void {
+    this.statusFilter.set(value);
+    this.currentPage.set(0);
+    this.loadTickets();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
+    this.loadTickets();
+  }
+
+  retryLoadTickets(): void {
+    this.loadTickets();
+  }
 
   toggleSidebar(): void {
     this.sidebarOpen.update((v) => !v);
@@ -105,81 +169,6 @@ export class OfficeDashboardComponent {
     { label: 'Resolvidos Hoje', value: 12, delta: '↑ 4 acima da média diária', deltaUp: true, icon: 'check_circle', theme: 'green' },
     { label: 'Clientes Ativos', value: 34, delta: '+2 novos este mês', deltaUp: true, icon: 'people', theme: 'blue' },
   ]);
-
-  readonly ticketsDataSource = new MatTableDataSource<OfficeTicketRow>([
-    {
-      id: '#3841',
-      subject: 'IRPJ — Divergência na base de cálculo',
-      sub: 'Aberto há 4h · Fiscal',
-      client: 'Tech Solutions Ltda',
-      status: 'Aberto',
-      statusClass: 'aberto',
-      assignee: 'Lucas R.',
-      assigneeInitials: 'LR',
-      sla: '2h restantes',
-      slaPercent: 80,
-      slaColor: 'red',
-      priority: 'high',
-    },
-    {
-      id: '#3840',
-      subject: 'Certificado digital expirado',
-      sub: 'Aberto há 6h · TI',
-      client: 'Construtora Nova Era',
-      status: 'Em Andamento',
-      statusClass: 'andamento',
-      assignee: 'Julia M.',
-      assigneeInitials: 'JM',
-      sla: '5h restantes',
-      slaPercent: 55,
-      slaColor: 'amber',
-      priority: 'high',
-    },
-    {
-      id: '#3838',
-      subject: 'Configuração do sistema ERP',
-      sub: 'Aberto há 1d · Sistemas',
-      client: 'Farmácias BemViver',
-      status: 'Aguardando',
-      statusClass: 'aguardando',
-      assignee: 'Rafael S.',
-      assigneeInitials: 'RS',
-      sla: '1d 3h restantes',
-      slaPercent: 30,
-      slaColor: 'teal',
-      priority: 'medium',
-    },
-    {
-      id: '#3835',
-      subject: 'Dúvida sobre MEI — Faturamento',
-      sub: 'Aberto há 2d · Consultoria',
-      client: 'Studio Art Criativo',
-      status: 'Resolvido',
-      statusClass: 'resolvido',
-      assignee: 'Marina A.',
-      assigneeInitials: 'MA',
-      sla: 'Concluído ✓',
-      slaPercent: 100,
-      slaColor: 'green',
-      priority: 'low',
-    },
-    {
-      id: '#3833',
-      subject: 'Regularização SPED Fiscal',
-      sub: 'Aberto há 3d · Fiscal',
-      client: 'Metalúrgica São Jorge',
-      status: 'Em Andamento',
-      statusClass: 'andamento',
-      assignee: 'Lucas R.',
-      assigneeInitials: 'LR',
-      sla: '2d restantes',
-      slaPercent: 20,
-      slaColor: 'green',
-      priority: 'medium',
-    },
-  ]);
-
-  readonly displayedColumns = ['id', 'subject', 'client', 'status', 'assignee', 'sla'];
 
   readonly clientsSummary = signal<OfficeClientSummary[]>([
     { name: 'Tech Solutions Ltda', count: '3 abertos · 1 urgente', dotColor: 'red', badge: 'ALTO', badgeClass: 'high' },

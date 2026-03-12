@@ -147,14 +147,16 @@ public class TicketController {
         @RequestHeader(value = WebConstants.HEADER_USER_ROLE, required = false) String role,
         @RequestHeader(WebConstants.HEADER_TENANT_ID) UUID tenantId,
         @Parameter(description = "Zero-based page index") @RequestParam(defaultValue = "0") int page,
-        @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size
+        @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
+        @Parameter(description = "Optional status filter (e.g. OPEN, IN_PROGRESS, RESOLVED, CLOSED)")
+        @RequestParam(required = false) String status
     ) {
         if (!WebConstants.ROLE_ACCOUNTANT.equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, DEFAULT_SORT_FIELD));
         ListTicketsResponse response = ListTicketsResponseMapper.toResponse(
-            listAllTicketsUseCase.listByTenant(tenantId, pageable));
+            listAllTicketsUseCase.listByTenant(tenantId, pageable, status));
         return ResponseEntity.ok(response);
     }
 
