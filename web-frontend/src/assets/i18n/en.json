@@ -105,6 +105,27 @@
     "ticketsError": "Failed to load tickets. Try again later.",
     "ticketCreatedAt": "Created {{date}}"
   },
+  "createTicket": {
+    "title": "New Ticket",
+    "titleLabel": "Title",
+    "titleRequired": "Title is required",
+    "descriptionLabel": "Description",
+    "descriptionRequired": "Description is required",
+    "priorityLabel": "Priority",
+    "priorityLow": "Low",
+    "priorityNormal": "Normal",
+    "priorityHigh": "High",
+    "priorityUrgent": "Urgent",
+    "categoryLabel": "Category (optional)",
+    "attachFiles": "Attach files",
+    "chooseFiles": "Choose files",
+    "fileTooLarge": "File exceeds 10 MB.",
+    "fileTypeNotAllowed": "Allowed types: PDF, JPG, PNG, XLSX.",
+    "cancel": "Cancel",
+    "submit": "Create ticket",
+    "submitting": "Creating…",
+    "submitError": "Failed to create ticket. Try again."
+  },
   "status": {
     "received": "Ticket Received",
     "receivedSub": "Today at 08:14 · Protocol generated",

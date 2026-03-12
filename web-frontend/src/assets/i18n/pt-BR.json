@@ -105,6 +105,27 @@
     "ticketsError": "Falha ao carregar chamados. Tente novamente.",
     "ticketCreatedAt": "Criado em {{date}}"
   },
+  "createTicket": {
+    "title": "Novo Chamado",
+    "titleLabel": "Título",
+    "titleRequired": "Título é obrigatório",
+    "descriptionLabel": "Descrição",
+    "descriptionRequired": "Descrição é obrigatória",
+    "priorityLabel": "Prioridade",
+    "priorityLow": "Baixa",
+    "priorityNormal": "Normal",
+    "priorityHigh": "Alta",
+    "priorityUrgent": "Urgente",
+    "categoryLabel": "Categoria (opcional)",
+    "attachFiles": "Anexar arquivos",
+    "chooseFiles": "Escolher arquivos",
+    "fileTooLarge": "Arquivo excede 10 MB.",
+    "fileTypeNotAllowed": "Tipos permitidos: PDF, JPG, PNG, XLSX.",
+    "cancel": "Cancelar",
+    "submit": "Criar chamado",
+    "submitting": "Criando…",
+    "submitError": "Falha ao criar chamado. Tente novamente."
+  },
   "status": {
     "received": "Chamado Recebido",
     "receivedSub": "Hoje às 08:14 · Protocolo gerado",

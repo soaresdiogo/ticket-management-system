@@ -95,7 +95,7 @@ Done after Auth so the JWT filter can be tested with real tokens.
 - [X] Authentication (login + MFA)
 - [X] Create both dashboards (office and clients)
 - [X] Client dashboard: list of tickets and status
-- [ ] Create ticket and upload files
+- [X] Create ticket and upload files
 - [ ] Office dashboard: full list and filters
 - [ ] Change ticket status
 - [ ] WebSocket for real-time updates

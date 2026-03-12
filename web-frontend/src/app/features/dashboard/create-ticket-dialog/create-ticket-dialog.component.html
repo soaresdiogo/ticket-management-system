@@ -1,0 +1,93 @@
+<h2 mat-dialog-title [textContent]="'createTicket.title' | translate"></h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="create-ticket-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label [textContent]="'createTicket.titleLabel' | translate"></mat-label>
+      <input matInput formControlName="title" [maxlength]="255" />
+      @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+        <mat-error [textContent]="'createTicket.titleRequired' | translate"></mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label [textContent]="'createTicket.descriptionLabel' | translate"></mat-label>
+      <textarea matInput formControlName="description" rows="4"></textarea>
+      @if (form.get('description')?.hasError('required') && form.get('description')?.touched) {
+        <mat-error [textContent]="'createTicket.descriptionRequired' | translate"></mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label [textContent]="'createTicket.priorityLabel' | translate"></mat-label>
+      <mat-select formControlName="priority">
+        @for (opt of priorityOptions; track opt.value) {
+          <mat-option [value]="opt.value">
+            <span [textContent]="opt.labelKey | translate"></span>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label [textContent]="'createTicket.categoryLabel' | translate"></mat-label>
+      <input matInput formControlName="category" [maxlength]="100" />
+    </mat-form-field>
+
+    <div class="file-section">
+      <span class="file-label" [textContent]="'createTicket.attachFiles' | translate"></span>
+      <input
+        type="file"
+        #fileInput
+        multiple
+        accept=".pdf,.jpg,.jpeg,.png,.xlsx,application/pdf,image/jpeg,image/jpg,image/png,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        (change)="onFileSelected($event)"
+        class="file-input-hidden"
+      />
+      <button type="button" mat-stroked-button (click)="fileInput.click()">
+        <mat-icon>attach_file</mat-icon>
+        <span [textContent]="'createTicket.chooseFiles' | translate"></span>
+      </button>
+      @if (fileError(); as err) {
+        <p class="file-error" [textContent]="err | translate"></p>
+      }
+      @if (selectedFiles().length > 0) {
+        <ul class="file-list">
+          @for (file of selectedFiles(); track file.name + file.size; let i = $index) {
+            <li class="file-list-item">
+              <mat-icon class="file-icon">insert_drive_file</mat-icon>
+              <span class="file-name" [textContent]="file.name"></span>
+              <button type="button" mat-icon-button (click)="removeFile(i)" aria-label="Remove file">
+                <mat-icon>close</mat-icon>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    @if (submitError(); as err) {
+      <p class="submit-error" role="alert" [textContent]="err | translate"></p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()" [disabled]="submitInProgress()">
+    <span [textContent]="'createTicket.cancel' | translate"></span>
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="submit()"
+    [disabled]="!canSubmit()"
+  >
+    @if (submitInProgress()) {
+      <mat-spinner diameter="20"></mat-spinner>
+      <span class="btn-label" [textContent]="'createTicket.submitting' | translate"></span>
+    } @else {
+      <span [textContent]="'createTicket.submit' | translate"></span>
+    }
+  </button>
+</mat-dialog-actions>

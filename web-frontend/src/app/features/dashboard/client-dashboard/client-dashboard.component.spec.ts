@@ -12,6 +12,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -51,6 +52,7 @@ describe('ClientDashboardComponent', () => {
   let fixture: ComponentFixture<ClientDashboardComponent>;
   let authMock: { profile: () => { email: string } | null; logout: () => void };
   let ticketServiceMock: { getMyTickets: () => ReturnType<TicketService['getMyTickets']> };
+  let dialogMock: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     authMock = {
@@ -59,6 +61,9 @@ describe('ClientDashboardComponent', () => {
     };
     ticketServiceMock = {
       getMyTickets: () => of(mockTicketsResponse),
+    };
+    dialogMock = {
+      open: vi.fn().mockReturnValue({ afterClosed: () => of(null) }),
     };
     await TestBed.configureTestingModule({
       imports: [
@@ -72,6 +77,7 @@ describe('ClientDashboardComponent', () => {
         { provide: AuthService, useValue: authMock },
         { provide: TranslateService, useValue: translateMock },
         { provide: TicketService, useValue: ticketServiceMock },
+        { provide: MatDialog, useValue: dialogMock },
       ],
     });
     TestBed.overrideComponent(StatusTrackerComponent, {
@@ -145,5 +151,25 @@ describe('ClientDashboardComponent', () => {
     const getMyTicketsSpy = vi.spyOn(ticketServiceMock, 'getMyTickets').mockReturnValue(of(mockTicketsResponse));
     component.retryLoadTickets();
     expect(getMyTicketsSpy).toHaveBeenCalled();
+  });
+
+  it('openNewTicket should open CreateTicketDialog and refresh tickets when dialog closes with result', () => {
+    const getMyTicketsSpy = vi.spyOn(ticketServiceMock, 'getMyTickets').mockReturnValue(of(mockTicketsResponse));
+    dialogMock.open.mockReturnValue({ afterClosed: () => of({ id: 'new-ticket' }) });
+
+    component.openNewTicket();
+
+    expect(dialogMock.open).toHaveBeenCalled();
+    expect(getMyTicketsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('openNewTicket should not refresh when dialog closes with null', () => {
+    dialogMock.open.mockReturnValue({ afterClosed: () => of(null) });
+    const getMyTicketsSpy = vi.spyOn(ticketServiceMock, 'getMyTickets');
+
+    component.openNewTicket();
+
+    expect(dialogMock.open).toHaveBeenCalled();
+    expect(getMyTicketsSpy).toHaveBeenCalledTimes(0);
   });
 });

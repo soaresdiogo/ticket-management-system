@@ -38,3 +38,24 @@ export interface TicketStatusDisplay {
   labelKey: string;
   cssClass: string;
 }
+
+/** Request body for POST /tickets (create ticket). */
+export interface CreateTicketRequest {
+  title: string;
+  description: string;
+  priority?: string;
+  category?: string | null;
+}
+
+/** Response from POST /tickets. */
+export interface CreateTicketResponse {
+  id: string;
+  tenantId: string;
+  clientId: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  category: string | null;
+  createdAt: string;
+}

@@ -2,7 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import type { ListTicketsResponse } from '../models/ticket.model';
+import type {
+  ListTicketsResponse,
+  CreateTicketRequest,
+  CreateTicketResponse,
+} from '../models/ticket.model';
 
 const TICKETS_API = '/tickets';
 
@@ -29,5 +33,12 @@ export class TicketService {
       .set('page', String(page))
       .set('size', String(size));
     return this.http.get<ListTicketsResponse>(TICKETS_API, { params: httpParams });
+  }
+
+  /**
+   * Creates a new ticket. Requires authenticated request (JWT); gateway adds X-User-Id and X-Tenant-Id.
+   */
+  createTicket(request: CreateTicketRequest): Observable<CreateTicketResponse> {
+    return this.http.post<CreateTicketResponse>(TICKETS_API, request);
   }
 }
