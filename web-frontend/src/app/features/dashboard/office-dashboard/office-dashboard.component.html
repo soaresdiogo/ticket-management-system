@@ -1,0 +1,284 @@
+<div class="office-dashboard theme-office" [class.sidebar-open]="sidebarOpen()">
+  <!-- Sidebar -->
+  <div class="sidebar-overlay" (click)="closeSidebar()" [class.visible]="sidebarOpen()" aria-hidden="true"></div>
+  <aside class="sidebar" [class.open]="sidebarOpen()">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <mat-icon>layers</mat-icon>
+      </div>
+      <div>
+        <div class="logo-text" [textContent]="'office.appName' | translate"></div>
+        <div class="logo-sub" [textContent]="'office.appSub' | translate"></div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label" [textContent]="'office.main' | translate"></div>
+      <a routerLink="/dashboard/office" routerLinkActive="active" class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>dashboard</mat-icon>
+        </div>
+        <span [textContent]="'office.dashboard' | translate"></span>
+      </a>
+      <a class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>forum</mat-icon>
+        </div>
+        <span [textContent]="'office.tickets' | translate"></span>
+        <span class="badge red">14</span>
+      </a>
+      <a class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <span [textContent]="'office.slaAndDeadlines' | translate"></span>
+        <span class="badge">3</span>
+      </a>
+      <a class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>people</mat-icon>
+        </div>
+        <span [textContent]="'office.clients' | translate"></span>
+      </a>
+      <div class="sidebar-section-label sidebar-section-label--spaced" [textContent]="'office.operations' | translate"></div>
+      <a class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>view_kanban</mat-icon>
+        </div>
+        <span [textContent]="'office.kanban' | translate"></span>
+      </a>
+      <a class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>description</mat-icon>
+        </div>
+        <span [textContent]="'office.reports' | translate"></span>
+      </a>
+      <a class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>integration_instructions</mat-icon>
+        </div>
+        <span [textContent]="'office.integrations' | translate"></span>
+        <span class="badge blue" [textContent]="'common.new' | translate"></span>
+      </a>
+      <a class="nav-item">
+        <div class="icon-wrap">
+          <mat-icon>settings</mat-icon>
+        </div>
+        <span [textContent]="'office.settings' | translate"></span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card" [matMenuTriggerFor]="userMenu">
+        <div class="avatar" [textContent]="initials()"></div>
+        <div>
+          <div class="user-name" [textContent]="displayName()"></div>
+          <div class="user-role" [textContent]="'office.operationsManager' | translate"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="topbar" mat-toolbar>
+      <div class="topbar-left">
+        <button mat-icon-button aria-label="Menu" (click)="toggleSidebar()" class="menu-btn">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <mat-form-field class="search-bar" appearance="outline">
+          <mat-label [textContent]="'common.search' | translate"></mat-label>
+          <input matInput [placeholder]="'office.searchPlaceholder' | translate" />
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
+      <div class="topbar-actions">
+        <button mat-icon-button aria-label="Notificações">
+          <mat-icon>notifications</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Calendário">
+          <mat-icon>calendar_today</mat-icon>
+        </button>
+        <button mat-flat-button class="new-ticket-btn" (click)="openNewTicket()">
+          <mat-icon>add</mat-icon>
+          <span [textContent]="'office.newTicket' | translate"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="page-header">
+        <div class="page-header-live">
+          <span class="live-dot"></span>
+          <span class="live-label" [textContent]="'office.live' | translate"></span>
+          <span class="live-updated" [textContent]="'office.updatedAgo' | translate:{ minutes: 2 }"></span>
+        </div>
+        <h1 class="page-title" [textContent]="'office.overviewTitle' | translate"></h1>
+        <p class="page-sub">
+          Terça-feira, 10 de junho de 2025 · Semana 23 · Empresa: <strong class="company-highlight">ContaFlow Assessoria</strong>
+        </p>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metrics-grid">
+        @for (m of metrics(); track m.label) {
+          <mat-card [class]="'metric-card ' + m.theme + ' animate-in'">
+            <mat-card-content>
+              <div class="metric-header">
+                <span class="metric-label" [textContent]="m.label"></span>
+                <mat-icon [class]="'metric-icon ' + m.theme" [textContent]="m.icon"></mat-icon>
+              </div>
+              <div class="metric-value" [textContent]="m.value"></div>
+              <div class="metric-delta">
+                <span [class]="m.deltaUp ? 'delta-up' : 'delta-down'" [textContent]="m.delta"></span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+
+      <div class="grid-2">
+        <!-- Tickets table -->
+        <mat-card>
+          <div class="card-header">
+            <div>
+              <div class="card-title" [textContent]="'office.recentTickets' | translate"></div>
+              <div class="card-subtitle" [textContent]="'office.allClientsByUrgency' | translate"></div>
+            </div>
+            <button mat-button class="card-action"><span [textContent]="'common.seeAll' | translate"></span> →</button>
+          </div>
+          <div class="table-filters">
+            <button class="filter-tab active"><span [textContent]="'office.all' | translate"></span> (47)</button>
+            <button class="filter-tab"><span [textContent]="'office.open' | translate"></span> (18)</button>
+            <button class="filter-tab"><span [textContent]="'office.inProgress' | translate"></span> (21)</button>
+            <button class="filter-tab" [textContent]="'office.resolved' | translate"></button>
+            <button mat-stroked-button class="filter-btn">
+              <mat-icon>filter_list</mat-icon>
+              <span [textContent]="'common.filter' | translate"></span>
+            </button>
+          </div>
+          <mat-table [dataSource]="ticketsDataSource">
+            <ng-container matColumnDef="id">
+              <mat-header-cell *matHeaderCellDef [textContent]="'office.tableId' | translate"></mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="ticket-id" [textContent]="row.id"></span>
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="subject">
+              <mat-header-cell *matHeaderCellDef [textContent]="'office.tableSubject' | translate"></mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <div style="display: flex; align-items: center">
+                  <span [class]="'priority-dot ' + row.priority"></span>
+                  <span style="font-weight: 500" [textContent]="row.subject"></span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px" [textContent]="row.sub"></div>
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="client">
+              <mat-header-cell *matHeaderCellDef [textContent]="'office.tableClient' | translate"></mat-header-cell>
+              <mat-cell *matCellDef="let row" style="font-size: 12px; color: var(--text-secondary)" [textContent]="row.client"></mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <mat-header-cell *matHeaderCellDef [textContent]="'office.tableStatus' | translate"></mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span [class]="'status-pill ' + row.statusClass" [textContent]="row.status"></span>
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="assignee">
+              <mat-header-cell *matHeaderCellDef [textContent]="'office.tableAssignee' | translate"></mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <div style="display: flex; align-items: center; gap: 6px">
+                  <div class="avatar" style="width: 22px; height: 22px; font-size: 9px" [textContent]="row.assigneeInitials"></div>
+                  <span [textContent]="row.assignee"></span>
+                </div>
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="sla">
+              <mat-header-cell *matHeaderCellDef>SLA</mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <div>
+                  <div [style.color]="'var(--' + row.slaColor + ')'" style="font-size: 10px; font-weight: 600" [textContent]="row.sla"></div>
+                  <div style="height: 4px; background: var(--navy-border); border-radius: 2px; margin-top: 3px; width: 60px">
+                    <div
+                      [style.width.%]="row.slaPercent"
+                      [style.background]="'var(--' + row.slaColor + ')'"
+                      style="height: 100%; border-radius: 2px"
+                    ></div>
+                  </div>
+                </div>
+              </mat-cell>
+            </ng-container>
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+          </mat-table>
+        </mat-card>
+
+        <!-- Right panel -->
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <mat-card>
+            <div class="card-header">
+              <div class="card-title" [textContent]="'office.clientsWithTickets' | translate"></div>
+              <button mat-button class="card-action" [textContent]="'common.manage' | translate"></button>
+            </div>
+            <div class="mini-list">
+              @for (c of clientsSummary(); track c.name) {
+                <div class="mini-item">
+                  <div style="display: flex; align-items: center; gap: 10px">
+                    <span
+                      class="client-dot"
+                      [style.background]="'var(--' + c.dotColor + ')'"
+                      style="width: 8px; height: 8px; border-radius: 50%"
+                    ></span>
+                    <div>
+                      <div class="client-name" [textContent]="c.name"></div>
+                      <div class="client-count" [textContent]="c.count"></div>
+                    </div>
+                  </div>
+                  <span
+                    [style.background]="'rgba(var(--' + c.dotColor + '), 0.1)'"
+                    [style.color]="'var(--' + c.dotColor + ')'"
+                    style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px"
+                    [textContent]="c.badge"
+                  ></span>
+                </div>
+              }
+            </div>
+          </mat-card>
+
+          <mat-card>
+            <div class="card-header">
+              <div class="card-title" [textContent]="'office.recentActivity' | translate"></div>
+              <button mat-button class="card-action" [textContent]="'common.viewLog' | translate"></button>
+            </div>
+            <div class="activity-feed">
+              @for (a of recentActivity(); track a.time) {
+                <div class="activity-item">
+                  <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0; padding-top: 2px">
+                    <span
+                      [style.background]="'var(--' + a.dotColor + ')'"
+                      style="width: 8px; height: 8px; border-radius: 50%"
+                    ></span>
+                    @if (!$last) {
+                      <div style="width: 1px; flex: 1; background: var(--navy-border); margin: 4px 0; min-height: 14px"></div>
+                    }
+                  </div>
+                  <div style="flex: 1">
+                    <div class="activity-text" [textContent]="a.text"></div>
+                    <div class="activity-time" [textContent]="a.time"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<mat-menu #userMenu="matMenu">
+  <button mat-menu-item (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    <span [textContent]="'common.logout' | translate"></span>
+  </button>
+</mat-menu>

@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 
+import { decodeJwtPayload } from '../utils/jwt.utils';
+
 const AUTH_API = '/auth';
 
 export interface LoginRequest {
@@ -35,6 +37,14 @@ export interface RefreshResponse {
   refreshTokenSet?: boolean;
 }
 
+/** User claims from JWT (role drives dashboard: CLIENT vs ACCOUNTANT/office). */
+export interface UserProfile {
+  userId: string;
+  email: string;
+  role: string;
+  tenantId: string | null;
+}
+
 /** In-memory only. Expiry is checked when reading token. */
 const DEFAULT_EXPIRES_AT = 0;
 
@@ -42,8 +52,15 @@ const DEFAULT_EXPIRES_AT = 0;
 export class AuthService {
   private readonly accessToken = signal<string | null>(null);
   private readonly expiresAt = signal<number>(DEFAULT_EXPIRES_AT);
+  private readonly userProfile = signal<UserProfile | null>(null);
 
   readonly isAuthenticated = computed(() => this.hasValidAccessToken());
+  readonly profile = computed(() => this.userProfile());
+
+  /** True if user has office/accountant role (ACCOUNTANT). */
+  readonly isOfficeUser = computed(() => this.userProfile()?.role === 'ACCOUNTANT');
+  /** True if user has client role (CLIENT). */
+  readonly isClientUser = computed(() => this.userProfile()?.role === 'CLIENT');
 
   constructor(
     private readonly http: HttpClient,
@@ -89,11 +106,23 @@ export class AuthService {
     const expiresAt = Date.now() + expiresInSeconds * 1000;
     this.accessToken.set(access);
     this.expiresAt.set(expiresAt);
+    const payload = decodeJwtPayload(access);
+    if (payload?.sub && payload.role) {
+      this.userProfile.set({
+        userId: payload.sub,
+        email: payload.email ?? '',
+        role: payload.role,
+        tenantId: payload.tenantId ?? null,
+      });
+    } else {
+      this.userProfile.set(null);
+    }
   }
 
   private clearTokens(): void {
     this.accessToken.set(null);
     this.expiresAt.set(DEFAULT_EXPIRES_AT);
+    this.userProfile.set(null);
   }
 
   private clearAndNavigate(): void {

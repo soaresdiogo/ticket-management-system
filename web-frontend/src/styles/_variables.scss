@@ -1,4 +1,5 @@
-// ContaFlow / TMS design tokens (from dashboard-cli.html)
+// ContaFlow / TMS design tokens
+// Client (light) — from dashboard-cli.html
 :root {
   --bg: #f8faff;
   --surface: #ffffff;
@@ -20,6 +21,32 @@
   --text-primary: #0f2552;
   --text-secondary: #4a6fa5;
   --text-muted: #94a9c9;
+  --blue-accent: #3b82f6;
+}
+
+// Office (dark) — from dashboard-office.html
+.theme-office {
+  --bg: #0b1629;
+  --surface: #112240;
+  --surface-2: #162848;
+  --border: #1e3358;
+  --border-strong: #1e3358;
+  --navy: #0b1629;
+  --navy-mid: #112240;
+  --navy-card: #162848;
+  --navy-border: #1e3358;
+  --navy-hover: #1a3060;
+  --blue: #3b82f6;
+  --blue-light: rgba(59, 130, 246, 0.12);
+  --amber: #f59e0b;
+  --amber-light: #fcd34d;
+  --green: #10b981;
+  --red: #ef4444;
+  --teal: #14b8a6;
+  --text-primary: #e8f0fe;
+  --text-secondary: #8da9cc;
+  --text-muted: #4a6fa5;
+  --blue-accent: #3b82f6;
 }
 
 * {

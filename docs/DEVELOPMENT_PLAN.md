@@ -93,6 +93,7 @@ Done after Auth so the JWT filter can be tested with real tokens.
 
 - [X] Initial set up of Angular application into web-frontend path
 - [X] Authentication (login + MFA)
+- [X] Create both dashboards (office and clients)
 - [ ] Client dashboard: list of tickets and status
 - [ ] Create ticket and upload files
 - [ ] Office dashboard: full list and filters
