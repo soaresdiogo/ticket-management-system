@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ContaFlow — Painel Contábil</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --navy: #0B1629;
+      --navy-mid: #112240;
+      --navy-card: #162848;
+      --navy-border: #1E3358;
+      --navy-hover: #1A3060;
+      --amber: #F59E0B;
+      --amber-light: #FCD34D;
+      --amber-glow: rgba(245,158,11,0.15);
+      --teal: #14B8A6;
+      --red: #EF4444;
+      --green: #10B981;
+      --blue-accent: #3B82F6;
+      --text-primary: #E8F0FE;
+      --text-secondary: #8DA9CC;
+      --text-muted: #4A6FA5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--navy);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: var(--navy-mid);
+      border-right: 1px solid var(--navy-border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      z-index: 100;
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .sidebar.collapsed { width: 68px; }
+
+    .sidebar-logo {
+      padding: 20px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--navy-border);
+      min-height: 68px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--amber), #E07B09);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+
+    .logo-text { font-size: 17px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; }
+    .logo-sub { font-size: 10px; color: var(--amber); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .sidebar-section-label {
+      font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 18px 18px 6px;
+      white-space: nowrap; overflow: hidden;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px;
+      margin: 2px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 14px; font-weight: 500;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .nav-item:hover { background: var(--navy-hover); color: var(--text-primary); }
+    .nav-item.active {
+      background: var(--amber-glow);
+      color: var(--amber);
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+
+    .nav-item .icon-wrap {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .nav-item.active .icon-wrap { background: rgba(245,158,11,0.1); }
+
+    .badge {
+      margin-left: auto;
+      background: var(--amber);
+      color: var(--navy);
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 20px;
+      flex-shrink: 0;
+    }
+
+    .badge.red { background: var(--red); color: white; }
+    .badge.blue { background: var(--blue-accent); color: white; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 14px 8px;
+      border-top: 1px solid var(--navy-border);
+    }
+
+    .user-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .user-card:hover { background: var(--navy-hover); }
+
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2563EB, #7C3AED);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+
+    .user-info { overflow: hidden; }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+    .user-role { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+    /* ─── MAIN ─── */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      height: 68px;
+      background: var(--navy-mid);
+      border-bottom: 1px solid var(--navy-border);
+      display: flex; align-items: center;
+      padding: 0 28px;
+      gap: 16px;
+      position: sticky; top: 0; z-index: 50;
+    }
+
+    .toggle-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid var(--navy-border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .toggle-btn:hover { background: var(--navy-hover); color: var(--text-primary); }
+
+    .search-bar {
+      flex: 1; max-width: 380px;
+      display: flex; align-items: center; gap: 10px;
+      background: var(--navy-card);
+      border: 1px solid var(--navy-border);
+      border-radius: 10px;
+      padding: 0 14px;
+      height: 38px;
+      margin-left: 8px;
+      transition: border-color 0.15s;
+    }
+    .search-bar:focus-within { border-color: var(--amber); }
+    .search-bar input {
+      background: transparent; border: none; outline: none;
+      color: var(--text-primary); font-size: 13px; font-family: 'DM Sans', sans-serif;
+      width: 100%;
+    }
+    .search-bar input::placeholder { color: var(--text-muted); }
+
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    .action-btn {
+      width: 38px; height: 38px;
+      border-radius: 9px;
+      background: var(--navy-card);
+      border: 1px solid var(--navy-border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .action-btn:hover { background: var(--navy-hover); color: var(--text-primary); }
+
+    .notif-dot {
+      position: absolute; top: 7px; right: 7px;
+      width: 7px; height: 7px;
+      background: var(--red); border-radius: 50%;
+      border: 1.5px solid var(--navy-mid);
+    }
+
+    .new-ticket-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--amber);
+      color: var(--navy);
+      font-size: 13px; font-weight: 600;
+      border: none; border-radius: 9px;
+      padding: 0 16px; height: 38px;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 2px 10px rgba(245,158,11,0.25);
+    }
+    .new-ticket-btn:hover { background: var(--amber-light); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
+
+    /* ─── CONTENT ─── */
+    .content { padding: 28px; flex: 1; }
+
+    /* ─── PAGE HEADER ─── */
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+    .page-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+    /* ─── METRICS ─── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--navy-card);
+      border: 1px solid var(--navy-border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .metric-card:hover { border-color: rgba(245,158,11,0.3); transform: translateY(-2px); }
+
+    .metric-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .metric-card.amber::before { background: linear-gradient(90deg, var(--amber), transparent); }
+    .metric-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .metric-card.red::before { background: linear-gradient(90deg, var(--red), transparent); }
+    .metric-card.blue::before { background: linear-gradient(90deg, var(--blue-accent), transparent); }
+
+    .metric-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .metric-label { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .metric-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+    .metric-icon.amber { background: rgba(245,158,11,0.12); color: var(--amber); }
+    .metric-icon.green { background: rgba(16,185,129,0.12); color: var(--green); }
+    .metric-icon.red { background: rgba(239,68,68,0.12); color: var(--red); }
+    .metric-icon.blue { background: rgba(59,130,246,0.12); color: var(--blue-accent); }
+
+    .metric-value { font-size: 34px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-bottom: 6px; }
+    .metric-delta { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+    .delta-up { color: var(--green); }
+    .delta-down { color: var(--red); }
+
+    /* ─── GRID LAYOUT ─── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--navy-card);
+      border: 1px solid var(--navy-border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--navy-border);
+    }
+    .card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .card-action { font-size: 12px; color: var(--amber); cursor: pointer; font-weight: 500; }
+    .card-action:hover { text-decoration: underline; }
+
+    /* ─── CHAMADOS TABLE ─── */
+    .table-filters {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--navy-border);
+    }
+
+    .filter-tab {
+      font-size: 12px; font-weight: 500;
+      padding: 5px 12px; border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover { color: var(--text-primary); }
+    .filter-tab.active { background: var(--amber-glow); color: var(--amber); border-color: rgba(245,158,11,0.25); }
+
+    .filter-sep { width: 1px; height: 16px; background: var(--navy-border); margin: 0 4px; }
+
+    .sort-btn {
+      margin-left: auto; display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-muted); cursor: pointer;
+      background: var(--navy); border: 1px solid var(--navy-border);
+      border-radius: 7px; padding: 5px 10px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      padding: 11px 22px; text-align: left;
+      border-bottom: 1px solid var(--navy-border);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(30,51,88,0.5);
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+    tbody tr:hover { background: var(--navy-hover); }
+    tbody tr:last-child { border-bottom: none; }
+
+    td {
+      padding: 13px 22px;
+      font-size: 13px; color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    .ticket-id { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); }
+
+    .priority-dot {
+      width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px;
+    }
+    .priority-dot.high { background: var(--red); box-shadow: 0 0 5px rgba(239,68,68,0.5); }
+    .priority-dot.medium { background: var(--amber); }
+    .priority-dot.low { background: var(--green); }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+    }
+    .status-pill.aberto { background: rgba(239,68,68,0.12); color: #FC8181; border: 1px solid rgba(239,68,68,0.2); }
+    .status-pill.andamento { background: rgba(245,158,11,0.12); color: var(--amber-light); border: 1px solid rgba(245,158,11,0.2); }
+    .status-pill.aguardando { background: rgba(59,130,246,0.12); color: #93C5FD; border: 1px solid rgba(59,130,246,0.2); }
+    .status-pill.resolvido { background: rgba(16,185,129,0.12); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.2); }
+
+    .assignee-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-secondary);
+    }
+    .assignee-avatar {
+      width: 22px; height: 22px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: white;
+    }
+
+    .sla-bar { width: 60px; }
+    .sla-track { height: 4px; background: var(--navy-border); border-radius: 2px; margin-top: 3px; }
+    .sla-fill { height: 100%; border-radius: 2px; }
+
+    /* ─── SIDEBAR PANELS ─── */
+    .mini-list { padding: 6px 0; }
+    .mini-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 22px;
+      border-bottom: 1px solid rgba(30,51,88,0.4);
+      font-size: 13px;
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+    .mini-item:hover { background: var(--navy-hover); }
+    .mini-item:last-child { border-bottom: none; }
+
+    .client-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .client-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .client-count { font-size: 11px; color: var(--text-muted); }
+
+    /* ─── ACTIVITY FEED ─── */
+    .activity-feed { padding: 8px 22px; }
+    .activity-item {
+      display: flex; gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(30,51,88,0.4);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-timeline {
+      display: flex; flex-direction: column; align-items: center;
+      flex-shrink: 0; padding-top: 2px;
+    }
+    .activity-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .activity-line { width: 1px; flex: 1; background: var(--navy-border); margin: 4px 0; min-height: 14px; }
+    .activity-content { flex: 1; }
+    .activity-text { font-size: 13px; color: var(--text-secondary); line-height: 1.45; }
+    .activity-text strong { color: var(--text-primary); font-weight: 600; }
+    .activity-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+    /* ─── CHART PLACEHOLDER ─── */
+    .chart-area { padding: 20px 22px; }
+    .chart-labels { display: flex; gap: 16px; margin-bottom: 12px; }
+    .chart-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+    .chart-label-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .bars-row {
+      display: flex; align-items: flex-end; gap: 5px;
+      height: 100px;
+    }
+    .bar-group { display: flex; gap: 2px; align-items: flex-end; flex: 1; }
+    .bar { border-radius: 4px 4px 0 0; min-width: 8px; flex: 1; transition: opacity 0.15s; }
+    .bar:hover { opacity: 0.8; }
+    .bar.amber { background: var(--amber); }
+    .bar.teal { background: var(--teal); }
+
+    .bar-labels { display: flex; gap: 5px; margin-top: 6px; }
+    .bar-label { flex: 1; text-align: center; font-size: 10px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+    /* ─── DONUT ─── */
+    .donut-wrap { display: flex; align-items: center; gap: 24px; padding: 16px 22px; }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .legend-label { font-size: 12px; color: var(--text-secondary); }
+    .legend-val { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-left: auto; }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeInUp 0.4s ease forwards;
+      opacity: 0;
+    }
+    .animate-in:nth-child(1) { animation-delay: 0.05s; }
+    .animate-in:nth-child(2) { animation-delay: 0.1s; }
+    .animate-in:nth-child(3) { animation-delay: 0.15s; }
+    .animate-in:nth-child(4) { animation-delay: 0.2s; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .live-dot { animation: pulse-dot 1.6s ease infinite; }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--navy-border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════╗ -->
+<!-- ║           SIDEBAR                ║ -->
+<!-- ╚══════════════════════════════════╝ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="sidebar-text">
+      <div class="logo-text">ContaFlow</div>
+      <div class="logo-sub">Gestão de Chamados</div>
+    </div>
+  </div>
+
+  <nav style="flex:1; overflow-y:auto; padding: 8px 0;">
+    <div class="sidebar-section-label sidebar-text">Principal</div>
+
+    <a class="nav-item active">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">Dashboard</span>
+    </a>
+
+    <a class="nav-item">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">Chamados</span>
+      <span class="badge red">14</span>
+    </a>
+
+    <a class="nav-item">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">SLA & Prazos</span>
+      <span class="badge">3</span>
+    </a>
+
+    <a class="nav-item">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">Clientes</span>
+    </a>
+
+    <div class="sidebar-section-label sidebar-text" style="margin-top:8px;">Operações</div>
+
+    <a class="nav-item">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">Kanban</span>
+    </a>
+
+    <a class="nav-item">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">Relatórios</span>
+    </a>
+
+    <a class="nav-item">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">Integrações</span>
+      <span class="badge blue">Novo</span>
+    </a>
+
+    <a class="nav-item">
+      <div class="icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/>
+          <path d="M2 12h2m16 0h2M12 2v2m0 16v2"/>
+        </svg>
+      </div>
+      <span class="sidebar-text">Configurações</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar">MA</div>
+      <div class="user-info sidebar-text">
+        <div class="user-name">Marina Alves</div>
+        <div class="user-role">Gerente de Operações</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ╔══════════════════════════════════╗ -->
+<!-- ║             MAIN                 ║ -->
+<!-- ╚══════════════════════════════════╝ -->
+<main class="main" id="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()" title="Colapsar menu">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+
+    <div class="search-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted); flex-shrink:0;">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="Buscar chamados, clientes, responsáveis..." />
+      <span style="font-size:11px; color:var(--text-muted); font-family:'DM Mono',monospace; flex-shrink:0;">⌘K</span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="action-btn" title="Notificações">
+        <div class="notif-dot"></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </button>
+
+      <button class="action-btn" title="Calendário">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </button>
+
+      <button class="new-ticket-btn" onclick="alert('Abrir modal novo chamado')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Novo Chamado
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+        <svg width="11" height="11" viewBox="0 0 10 10" class="live-dot">
+          <circle cx="5" cy="5" r="5" fill="#10B981"/>
+        </svg>
+        <span style="font-size:11px; color:var(--green); font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Ao vivo</span>
+        <span style="font-size:11px; color:var(--text-muted);">Atualizado há 2 minutos</span>
+      </div>
+      <h1 class="page-title">Visão Geral — Contábil</h1>
+      <p class="page-sub">Terça-feira, 10 de junho de 2025 · Semana 23 · Empresa: <strong style="color:var(--amber)">ContaFlow Assessoria</strong></p>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics-grid">
+      <div class="metric-card amber animate-in">
+        <div class="metric-header">
+          <div class="metric-label">Chamados Abertos</div>
+          <div class="metric-icon amber">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value">47</div>
+        <div class="metric-delta">
+          <span class="delta-up">↑ 8</span> vs semana anterior
+        </div>
+      </div>
+
+      <div class="metric-card red animate-in">
+        <div class="metric-header">
+          <div class="metric-label">SLA em Risco</div>
+          <div class="metric-icon red">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value">5</div>
+        <div class="metric-delta">
+          <span class="delta-down">↑ 2</span> precisam atenção urgente
+        </div>
+      </div>
+
+      <div class="metric-card green animate-in">
+        <div class="metric-header">
+          <div class="metric-label">Resolvidos Hoje</div>
+          <div class="metric-icon green">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value">12</div>
+        <div class="metric-delta">
+          <span class="delta-up">↑ 4</span> acima da média diária
+        </div>
+      </div>
+
+      <div class="metric-card blue animate-in">
+        <div class="metric-header">
+          <div class="metric-label">Clientes Ativos</div>
+          <div class="metric-icon blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value">34</div>
+        <div class="metric-delta">
+          <span class="delta-up">+2</span> novos este mês
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid-2">
+
+      <!-- LEFT: CHAMADOS TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Chamados Recentes</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Todos os clientes · Ordenado por urgência</div>
+          </div>
+          <span class="card-action">Ver todos →</span>
+        </div>
+
+        <div class="table-filters">
+          <div class="filter-tab active">Todos (47)</div>
+          <div class="filter-tab">Abertos (18)</div>
+          <div class="filter-tab">Em Andamento (21)</div>
+          <div class="filter-tab">Resolvidos</div>
+          <div class="filter-sep"></div>
+          <div class="sort-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            Filtrar
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Assunto</th>
+              <th>Cliente</th>
+              <th>Status</th>
+              <th>Responsável</th>
+              <th>SLA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="ticket-id">#3841</span></td>
+              <td>
+                <div style="display:flex; align-items:center;">
+                  <span class="priority-dot high"></span>
+                  <span style="font-weight:500;">IRPJ — Divergência na base de cálculo</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Aberto há 4h · Fiscal</div>
+              </td>
+              <td style="font-size:12px; color:var(--text-secondary);">Tech Solutions Ltda</td>
+              <td><span class="status-pill aberto">Aberto</span></td>
+              <td>
+                <div class="assignee-chip">
+                  <div class="assignee-avatar" style="background:linear-gradient(135deg,#7C3AED,#2563EB)">LR</div>
+                  Lucas R.
+                </div>
+              </td>
+              <td>
+                <div class="sla-bar">
+                  <div style="font-size:10px; color:var(--red); font-weight:600;">2h restantes</div>
+                  <div class="sla-track"><div class="sla-fill" style="width:80%; background:var(--red);"></div></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ticket-id">#3840</span></td>
+              <td>
+                <div style="display:flex; align-items:center;">
+                  <span class="priority-dot high"></span>
+                  <span style="font-weight:500;">Certificado digital expirado</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Aberto há 6h · TI</div>
+              </td>
+              <td style="font-size:12px; color:var(--text-secondary);">Construtora Nova Era</td>
+              <td><span class="status-pill andamento">Em Andamento</span></td>
+              <td>
+                <div class="assignee-chip">
+                  <div class="assignee-avatar" style="background:linear-gradient(135deg,#D97706,#DC2626)">JM</div>
+                  Julia M.
+                </div>
+              </td>
+              <td>
+                <div class="sla-bar">
+                  <div style="font-size:10px; color:var(--amber); font-weight:600;">5h restantes</div>
+                  <div class="sla-track"><div class="sla-fill" style="width:55%; background:var(--amber);"></div></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ticket-id">#3838</span></td>
+              <td>
+                <div style="display:flex; align-items:center;">
+                  <span class="priority-dot medium"></span>
+                  <span style="font-weight:500;">Configuração do sistema ERP</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Aberto há 1d · Sistemas</div>
+              </td>
+              <td style="font-size:12px; color:var(--text-secondary);">Farmácias BemViver</td>
+              <td><span class="status-pill aguardando">Aguardando</span></td>
+              <td>
+                <div class="assignee-chip">
+                  <div class="assignee-avatar" style="background:linear-gradient(135deg,#059669,#0891B2)">RS</div>
+                  Rafael S.
+                </div>
+              </td>
+              <td>
+                <div class="sla-bar">
+                  <div style="font-size:10px; color:var(--teal); font-weight:600;">1d 3h restantes</div>
+                  <div class="sla-track"><div class="sla-fill" style="width:30%; background:var(--teal);"></div></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ticket-id">#3835</span></td>
+              <td>
+                <div style="display:flex; align-items:center;">
+                  <span class="priority-dot low"></span>
+                  <span style="font-weight:500;">Dúvida sobre MEI — Faturamento</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Aberto há 2d · Consultoria</div>
+              </td>
+              <td style="font-size:12px; color:var(--text-secondary);">Studio Art Criativo</td>
+              <td><span class="status-pill resolvido">Resolvido</span></td>
+              <td>
+                <div class="assignee-chip">
+                  <div class="assignee-avatar" style="background:linear-gradient(135deg,#DB2777,#9333EA)">MA</div>
+                  Marina A.
+                </div>
+              </td>
+              <td>
+                <div class="sla-bar">
+                  <div style="font-size:10px; color:var(--green); font-weight:600;">Concluído ✓</div>
+                  <div class="sla-track"><div class="sla-fill" style="width:100%; background:var(--green);"></div></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ticket-id">#3833</span></td>
+              <td>
+                <div style="display:flex; align-items:center;">
+                  <span class="priority-dot medium"></span>
+                  <span style="font-weight:500;">Regularização SPED Fiscal</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Aberto há 3d · Fiscal</div>
+              </td>
+              <td style="font-size:12px; color:var(--text-secondary);">Metalúrgica São Jorge</td>
+              <td><span class="status-pill andamento">Em Andamento</span></td>
+              <td>
+                <div class="assignee-chip">
+                  <div class="assignee-avatar" style="background:linear-gradient(135deg,#2563EB,#14B8A6)">LR</div>
+                  Lucas R.
+                </div>
+              </td>
+              <td>
+                <div class="sla-bar">
+                  <div style="font-size:10px; color:var(--green); font-weight:600;">2d restantes</div>
+                  <div class="sla-track"><div class="sla-fill" style="width:20%; background:var(--green);"></div></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <!-- Clientes Críticos -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Clientes com Chamados</div>
+            <span class="card-action">Gerenciar</span>
+          </div>
+          <div class="mini-list">
+            <div class="mini-item">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="client-dot" style="background:var(--red);"></div>
+                <div>
+                  <div class="client-name">Tech Solutions Ltda</div>
+                  <div class="client-count">3 abertos · 1 urgente</div>
+                </div>
+              </div>
+              <div style="font-size:11px; font-weight:600; color:var(--red); background:rgba(239,68,68,0.1); padding:2px 8px; border-radius:20px;">ALTO</div>
+            </div>
+            <div class="mini-item">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="client-dot" style="background:var(--amber);"></div>
+                <div>
+                  <div class="client-name">Construtora Nova Era</div>
+                  <div class="client-count">2 abertos · Em andamento</div>
+                </div>
+              </div>
+              <div style="font-size:11px; font-weight:600; color:var(--amber); background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:20px;">MED</div>
+            </div>
+            <div class="mini-item">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="client-dot" style="background:var(--teal);"></div>
+                <div>
+                  <div class="client-name">Farmácias BemViver</div>
+                  <div class="client-count">1 aberto · Aguardando</div>
+                </div>
+              </div>
+              <div style="font-size:11px; font-weight:600; color:var(--teal); background:rgba(20,184,166,0.1); padding:2px 8px; border-radius:20px;">LOW</div>
+            </div>
+            <div class="mini-item">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="client-dot" style="background:var(--green);"></div>
+                <div>
+                  <div class="client-name">Metalúrgica São Jorge</div>
+                  <div class="client-count">1 aberto · Em andamento</div>
+                </div>
+              </div>
+              <div style="font-size:11px; font-weight:600; color:var(--green); background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:20px;">LOW</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Atividade Recente -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Atividade Recente</div>
+            <span class="card-action">Ver log</span>
+          </div>
+          <div class="activity-feed">
+            <div class="activity-item">
+              <div class="activity-timeline">
+                <div class="activity-dot" style="background:var(--red);"></div>
+                <div class="activity-line"></div>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Lucas R.</strong> abriu chamado urgente sobre IRPJ da Tech Solutions</div>
+                <div class="activity-time">há 4 minutos</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-timeline">
+                <div class="activity-dot" style="background:var(--green);"></div>
+                <div class="activity-line"></div>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Marina A.</strong> resolveu chamado #3835 — Studio Art</div>
+                <div class="activity-time">há 23 minutos</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-timeline">
+                <div class="activity-dot" style="background:var(--amber);"></div>
+                <div class="activity-line"></div>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Julia M.</strong> atualizou o status do chamado #3840</div>
+                <div class="activity-time">há 41 minutos</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-timeline">
+                <div class="activity-dot" style="background:var(--blue-accent);"></div>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Rafael S.</strong> adicionou comentário no chamado #3838</div>
+                <div class="activity-time">há 1h 12min</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM CHARTS -->
+    <div class="grid-3">
+
+      <!-- Volume Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Volume de Chamados</div>
+            <div style="font-size:11px; color:var(--text-muted);">Últimas 8 semanas</div>
+          </div>
+        </div>
+        <div class="chart-area">
+          <div class="chart-labels">
+            <div class="chart-label"><div class="chart-label-dot" style="background:var(--amber);"></div>Abertos</div>
+            <div class="chart-label"><div class="chart-label-dot" style="background:var(--teal);"></div>Resolvidos</div>
+          </div>
+          <div class="bars-row">
+            <div class="bar-group"><div class="bar amber" style="height:55px;"></div><div class="bar teal" style="height:50px;"></div></div>
+            <div class="bar-group"><div class="bar amber" style="height:40px;"></div><div class="bar teal" style="height:38px;"></div></div>
+            <div class="bar-group"><div class="bar amber" style="height:70px;"></div><div class="bar teal" style="height:60px;"></div></div>
+            <div class="bar-group"><div class="bar amber" style="height:45px;"></div><div class="bar teal" style="height:42px;"></div></div>
+            <div class="bar-group"><div class="bar amber" style="height:60px;"></div><div class="bar teal" style="height:55px;"></div></div>
+            <div class="bar-group"><div class="bar amber" style="height:80px;"></div><div class="bar teal" style="height:72px;"></div></div>
+            <div class="bar-group"><div class="bar amber" style="height:65px;"></div><div class="bar teal" style="height:68px;"></div></div>
+            <div class="bar-group"><div class="bar amber" style="height:90px;"></div><div class="bar teal" style="height:75px;"></div></div>
+          </div>
+          <div class="bar-labels">
+            <div class="bar-label">S16</div>
+            <div class="bar-label">S17</div>
+            <div class="bar-label">S18</div>
+            <div class="bar-label">S19</div>
+            <div class="bar-label">S20</div>
+            <div class="bar-label">S21</div>
+            <div class="bar-label">S22</div>
+            <div class="bar-label">S23</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categorias Donut -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Por Categoria</div>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="90" height="90" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="35" fill="none" stroke="var(--navy-border)" stroke-width="12"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="var(--amber)" stroke-width="12"
+              stroke-dasharray="88 132" stroke-dashoffset="0" stroke-linecap="round"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="var(--teal)" stroke-width="12"
+              stroke-dasharray="52 168" stroke-dashoffset="-88" stroke-linecap="round"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="var(--blue-accent)" stroke-width="12"
+              stroke-dasharray="33 187" stroke-dashoffset="-140" stroke-linecap="round"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="var(--red)" stroke-width="12"
+              stroke-dasharray="27 193" stroke-dashoffset="-173" stroke-linecap="round"/>
+            <text x="45" y="49" text-anchor="middle" font-family="DM Sans" font-size="14" font-weight="700" fill="white">47</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--amber);"></div>
+              <span class="legend-label">Fiscal</span>
+              <span class="legend-val">40%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--teal);"></div>
+              <span class="legend-label">Sistemas</span>
+              <span class="legend-val">24%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--blue-accent);"></div>
+              <span class="legend-label">Consultoria</span>
+              <span class="legend-val">15%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--red);"></div>
+              <span class="legend-label">Urgências</span>
+              <span class="legend-val">12%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLA Performance -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Performance SLA</div>
+            <div style="font-size:11px; color:var(--text-muted);">Mês atual vs meta</div>
+          </div>
+        </div>
+        <div style="padding:18px 22px;">
+          <div style="margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; color:var(--text-secondary);">Chamados dentro do SLA</span>
+              <span style="font-size:13px; font-weight:700; color:var(--green);">87%</span>
+            </div>
+            <div style="height:6px; background:var(--navy-border); border-radius:3px;">
+              <div style="height:100%; width:87%; background:linear-gradient(90deg, var(--green), var(--teal)); border-radius:3px;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; color:var(--text-secondary);">Tempo médio de resposta</span>
+              <span style="font-size:13px; font-weight:700; color:var(--amber);">4.2h</span>
+            </div>
+            <div style="height:6px; background:var(--navy-border); border-radius:3px;">
+              <div style="height:100%; width:62%; background:linear-gradient(90deg, var(--amber), #E07B09); border-radius:3px;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; color:var(--text-secondary);">Taxa de resolução 1ª chamada</span>
+              <span style="font-size:13px; font-weight:700; color:var(--blue-accent);">71%</span>
+            </div>
+            <div style="height:6px; background:var(--navy-border); border-radius:3px;">
+              <div style="height:100%; width:71%; background:linear-gradient(90deg, var(--blue-accent), #7C3AED); border-radius:3px;"></div>
+            </div>
+          </div>
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:9px; padding:10px 12px; display:flex; align-items:center; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span style="font-size:12px; color:var(--green);">Meta mensal de 85% atingida</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  let collapsed = false;
+  function toggleSidebar() {
+    collapsed = !collapsed;
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+    sidebar.classList.toggle('collapsed', collapsed);
+    main.style.marginLeft = collapsed ? '68px' : '260px';
+    document.querySelectorAll('.sidebar-text').forEach(el => {
+      el.style.opacity = collapsed ? '0' : '1';
+      el.style.width = collapsed ? '0' : 'auto';
+      el.style.overflow = 'hidden';
+    });
+  }
+
+  // Filter tabs
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Nav items
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

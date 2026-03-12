@@ -1,0 +1,89 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-mark">
+        <mat-icon>layers</mat-icon>
+      </div>
+      <h1>ContaFlow</h1>
+      <p class="login-subtitle">Ticket Management System</p>
+    </div>
+
+    @if (step() === 'credentials') {
+      <form class="login-form" [formGroup]="credentialsForm" (ngSubmit)="onSubmitCredentials()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="you@company.com" />
+          @if (credentialsForm.get('email')?.hasError('required') && credentialsForm.get('email')?.touched) {
+            <mat-error>Email is required</mat-error>
+          }
+          @if (credentialsForm.get('email')?.hasError('email') && credentialsForm.get('email')?.touched) {
+            <mat-error>Enter a valid email</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password" />
+          @if (credentialsForm.get('password')?.hasError('required') && credentialsForm.get('password')?.touched) {
+            <mat-error>Password is required</mat-error>
+          }
+        </mat-form-field>
+
+        @if (error(); as err) {
+          <div class="error-message" role="alert" [textContent]="err"></div>
+        }
+
+        <button
+          mat-flat-button
+          type="submit"
+          class="submit-btn"
+          [disabled]="loading()"
+        >
+          @if (loading()) {
+            <mat-spinner diameter="24" class="btn-spinner" />
+          } @else {
+            Continue
+          }
+        </button>
+      </form>
+    } @else {
+      <form class="login-form" [formGroup]="mfaForm" (ngSubmit)="onSubmitMfa()">
+        <p class="mfa-hint">
+          We sent a verification code to <strong [textContent]="maskEmail(email())"></strong>. Enter it below.
+        </p>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Verification code</mat-label>
+          <input matInput formControlName="code" placeholder="000000" maxlength="10" inputmode="numeric" />
+          @if (mfaForm.get('code')?.hasError('required') && mfaForm.get('code')?.touched) {
+            <mat-error>Code is required</mat-error>
+          }
+          @if (mfaForm.get('code')?.hasError('minlength') && mfaForm.get('code')?.touched) {
+            <mat-error>Code must be at least 4 characters</mat-error>
+          }
+        </mat-form-field>
+
+        @if (error(); as err) {
+          <div class="error-message" role="alert" [textContent]="err"></div>
+        }
+
+        <button
+          mat-flat-button
+          type="submit"
+          class="submit-btn"
+          [disabled]="loading()"
+        >
+          @if (loading()) {
+            <mat-spinner diameter="24" class="btn-spinner" />
+          } @else {
+            Verify and sign in
+          }
+        </button>
+
+        <button mat-button type="button" class="back-btn" (click)="backToCredentials()">
+          Use different account
+        </button>
+      </form>
+    }
+  </div>
+</div>

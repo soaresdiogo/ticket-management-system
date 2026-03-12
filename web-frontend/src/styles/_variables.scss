@@ -1,0 +1,76 @@
+// ContaFlow / TMS design tokens (from dashboard-cli.html)
+:root {
+  --bg: #f8faff;
+  --surface: #ffffff;
+  --surface-2: #f1f5fb;
+  --border: #e2e9f5;
+  --border-strong: #c7d6ee;
+  --navy: #0f2552;
+  --navy-mid: #1a3a7c;
+  --blue: #2563eb;
+  --blue-light: #eef3ff;
+  --amber: #f59e0b;
+  --amber-light: #fffbeb;
+  --amber-border: #fde68a;
+  --green: #10b981;
+  --green-light: #ecfdf5;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --teal: #0891b2;
+  --text-primary: #0f2552;
+  --text-secondary: #4a6fa5;
+  --text-muted: #94a9c9;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-in {
+  animation: fadeIn 0.35s ease forwards;
+  opacity: 0;
+}
+.fade-in:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.fade-in:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.fade-in:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.fade-in:nth-child(4) {
+  animation-delay: 0.16s;
+}
