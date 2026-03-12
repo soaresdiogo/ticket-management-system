@@ -1,24 +1,26 @@
 package com.di2it.api_gateway.security;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import reactor.core.publisher.Mono;
-
-import java.time.Instant;
-
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * Verifies that the API Gateway allows unauthenticated access only to public paths
@@ -29,30 +31,48 @@ import static org.mockito.Mockito.when;
 @DisplayName("Authenticated vs unauthenticated routes")
 class AuthenticatedUnauthenticatedRoutesTest {
 
-    private static final String VALID_BEARER_TOKEN = "Bearer valid-jwt-token";
+    private static final String VALID_JWT_TOKEN = "valid-jwt-token";
+
+    private static WireMockServer wireMock;
 
     @LocalServerPort
     private int port;
 
     private WebTestClient webTestClient;
 
-    @MockitoBean
-    private ReactiveJwtDecoder reactiveJwtDecoder;
+    @BeforeAll
+    static void startWireMock() {
+        wireMock = new WireMockServer(0);
+        wireMock.start();
+        // Stub auth endpoints so gateway can proxy without real auth-service (offline)
+        wireMock.stubFor(post(urlPathMatching("/auth/login")).willReturn(aResponse().withStatus(200)));
+        wireMock.stubFor(post(urlPathMatching("/auth/tenants/.*/users"))
+                .willReturn(aResponse().withStatus(200)));
+        wireMock.stubFor(get(urlPathMatching("/auth/public-key"))
+                .willReturn(aResponse().withStatus(200).withBody("{}")));
+        wireMock.stubFor(post(urlPathMatching("/auth/change-password")).willReturn(aResponse().withStatus(200)));
+        // Stub other services so authenticated tests get 200 from backend
+        wireMock.stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
+    }
 
-    private static Jwt validJwt() {
-        return Jwt.withTokenValue("valid-jwt-token")
-                .header("alg", "RS256")
-                .subject("user-123")
-                .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusSeconds(3600))
-                .claim("role", "CLIENT")
-                .claim("tenantId", "tenant-456")
-                .build();
+    @AfterAll
+    static void stopWireMock() {
+        if (wireMock != null) {
+            wireMock.stop();
+        }
+    }
+
+    @DynamicPropertySource
+    static void setServiceUrls(DynamicPropertyRegistry registry) {
+        String base = "http://localhost:" + wireMock.port();
+        registry.add("AUTH_SERVICE_URL", () -> base);
+        registry.add("TICKET_SERVICE_URL", () -> base);
+        registry.add("FILE_SERVICE_URL", () -> base);
+        registry.add("NOTIFICATION_SERVICE_URL", () -> base);
     }
 
     @BeforeEach
     void setUp() {
-        when(reactiveJwtDecoder.decode(anyString())).thenReturn(Mono.just(validJwt()));
         webTestClient = WebTestClient.bindToServer()
                 .baseUrl("http://localhost:" + port)
                 .build();
@@ -150,7 +170,7 @@ class AuthenticatedUnauthenticatedRoutesTest {
         void ticketsAllowedWithToken() {
             webTestClient.get()
                     .uri("/tickets/1")
-                    .header("Authorization", VALID_BEARER_TOKEN)
+                    .headers(h -> h.setBearerAuth(VALID_JWT_TOKEN))
                     .exchange()
                     .expectStatus().value(v -> assertThat(v).isNotEqualTo(401));
         }
@@ -160,7 +180,7 @@ class AuthenticatedUnauthenticatedRoutesTest {
         void changePasswordAllowedWithToken() {
             webTestClient.post()
                     .uri("/auth/change-password")
-                    .header("Authorization", VALID_BEARER_TOKEN)
+                    .headers(h -> h.setBearerAuth(VALID_JWT_TOKEN))
                     .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                     .bodyValue("{}")
                     .exchange()
@@ -172,7 +192,7 @@ class AuthenticatedUnauthenticatedRoutesTest {
         void filesAllowedWithToken() {
             webTestClient.get()
                     .uri("/files/1/download")
-                    .header("Authorization", VALID_BEARER_TOKEN)
+                    .headers(h -> h.setBearerAuth(VALID_JWT_TOKEN))
                     .exchange()
                     .expectStatus().value(v -> assertThat(v).isNotEqualTo(401));
         }
@@ -182,7 +202,7 @@ class AuthenticatedUnauthenticatedRoutesTest {
         void notificationsAllowedWithToken() {
             webTestClient.get()
                     .uri("/notifications")
-                    .header("Authorization", VALID_BEARER_TOKEN)
+                    .headers(h -> h.setBearerAuth(VALID_JWT_TOKEN))
                     .exchange()
                     .expectStatus().value(v -> assertThat(v).isNotEqualTo(401));
         }

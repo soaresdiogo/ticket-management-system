@@ -5,6 +5,7 @@ import com.di2it.api_gateway.infrastructure.jwt.PemKeyParser;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
  * The decoder lazily fetches and caches the public key from auth-service.
  */
 @Configuration
+@Profile("!test")
 public class JwtDecoderConfig {
 
     @Bean
