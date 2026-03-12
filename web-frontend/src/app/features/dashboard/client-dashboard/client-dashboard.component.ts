@@ -10,6 +10,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 
@@ -22,6 +23,7 @@ import {
   ClientTicketRowComponent,
   type ClientTicketRowDisplay,
 } from './client-ticket-list/client-ticket-row.component';
+import { CreateTicketDialogComponent } from '../create-ticket-dialog/create-ticket-dialog.component';
 
 export interface ClientMetric {
   label: string;
@@ -70,11 +72,12 @@ export interface ClientNotification {
     MatMenuModule,
     MatBadgeModule,
     MatProgressSpinnerModule,
+    MatDialogModule,
     TranslateModule,
-    DatePipe,
     StatusTrackerComponent,
     ClientTicketRowComponent,
   ],
+  providers: [DatePipe],
   templateUrl: './client-dashboard.component.html',
   styleUrl: './client-dashboard.component.scss',
 })
@@ -83,6 +86,7 @@ export class ClientDashboardComponent implements OnInit {
   private readonly ticketService = inject(TicketService);
   private readonly ticketStatusService = inject(TicketStatusService);
   private readonly datePipe = inject(DatePipe);
+  private readonly dialog = inject(MatDialog);
 
   private readonly ticketsContent = signal<TicketListItem[]>([]);
   private readonly ticketsTotalElements = signal(0);
@@ -227,6 +231,12 @@ export class ClientDashboardComponent implements OnInit {
   }
 
   openNewTicket(): void {
-    // TODO: open create-ticket dialog/modal
+    const ref = this.dialog.open(CreateTicketDialogComponent, {
+      width: 'min(90vw, 520px)',
+      disableClose: false,
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result) this.loadTickets();
+    });
   }
 }

@@ -3,7 +3,11 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 
 import { TicketService } from './ticket.service';
-import type { ListTicketsResponse } from '../models/ticket.model';
+import type {
+  ListTicketsResponse,
+  CreateTicketRequest,
+  CreateTicketResponse,
+} from '../models/ticket.model';
 
 describe('TicketService', () => {
   let service: TicketService;
@@ -66,5 +70,34 @@ describe('TicketService', () => {
     expect(req.request.params.get('page')).toBe('1');
     expect(req.request.params.get('size')).toBe('10');
     req.flush(mockResponse);
+  });
+
+  it('createTicket should POST to /tickets with request body', () => {
+    const createRequest: CreateTicketRequest = {
+      title: 'New ticket',
+      description: 'Description',
+      priority: 'NORMAL',
+      category: 'Billing',
+    };
+    const createResponse: CreateTicketResponse = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      tenantId: '550e8400-e29b-41d4-a716-446655440001',
+      clientId: '550e8400-e29b-41d4-a716-446655440002',
+      title: createRequest.title,
+      description: createRequest.description,
+      status: 'OPEN',
+      priority: createRequest.priority ?? 'NORMAL',
+      category: createRequest.category ?? null,
+      createdAt: '2025-03-12T10:00:00Z',
+    };
+
+    service.createTicket(createRequest).subscribe((res) => {
+      expect(res).toEqual(createResponse);
+      expect(res.id).toBe(createResponse.id);
+    });
+
+    const req = httpMock.expectOne((r) => r.url === '/tickets' && r.method === 'POST');
+    expect(req.request.body).toEqual(createRequest);
+    req.flush(createResponse);
   });
 });
