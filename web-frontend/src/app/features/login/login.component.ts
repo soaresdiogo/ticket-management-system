@@ -7,8 +7,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { AuthService } from '../../core/services/auth.service';
+import { LocaleService, SupportedLocale } from '../../core/services/locale.service';
 
 type Step = 'credentials' | 'mfa';
 
@@ -23,6 +26,8 @@ type Step = 'credentials' | 'mfa';
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    MatSelectModule,
+    TranslateModule,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -31,6 +36,11 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  readonly translate = inject(TranslateService);
+  readonly localeService = inject(LocaleService);
+
+  readonly currentLocale = signal<SupportedLocale>(this.localeService.getCurrentLocale());
+  readonly supportedLocales = this.localeService.getSupportedLocales();
 
   readonly step = signal<Step>('credentials');
   readonly loading = signal(false);
@@ -115,5 +125,20 @@ export class LoginComponent {
     this.step.set('credentials');
     this.error.set(null);
     this.mfaForm.reset();
+  }
+
+  /** Flag emoji for locale: Brazil for pt-BR, UK for en. */
+  localeFlag(locale: SupportedLocale): string {
+    return locale === 'pt-BR' ? '🇧🇷' : '🇬🇧';
+  }
+
+  /** Display label for locale in the dropdown. */
+  localeLabel(locale: SupportedLocale): string {
+    return locale === 'pt-BR' ? 'Português' : 'English';
+  }
+
+  onLocaleChange(locale: SupportedLocale): void {
+    this.localeService.setLocale(locale);
+    this.translate.use(locale).subscribe(() => this.currentLocale.set(locale));
   }
 }

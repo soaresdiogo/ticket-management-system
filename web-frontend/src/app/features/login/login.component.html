@@ -1,31 +1,47 @@
 <div class="login-page">
+  <div class="language-selector">
+    <mat-form-field appearance="outline" class="language-field">
+      <mat-select
+        [value]="currentLocale()"
+        (selectionChange)="onLocaleChange($event.value)"
+        [aria-label]="'login.language' | translate"
+      >
+        @for (loc of supportedLocales; track loc) {
+          <mat-option [value]="loc">
+            <span class="locale-option"><span class="locale-flag" [textContent]="localeFlag(loc)"></span><span [textContent]="localeLabel(loc)"></span></span>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
   <div class="login-card">
     <div class="login-header">
       <div class="logo-mark">
         <mat-icon>layers</mat-icon>
       </div>
-      <h1>ContaFlow</h1>
-      <p class="login-subtitle">Ticket Management System</p>
+      <h1><span [textContent]="'login.title' | translate"></span></h1>
+      <p class="login-subtitle" [textContent]="'login.subtitle' | translate"></p>
     </div>
 
     @if (step() === 'credentials') {
       <form class="login-form" [formGroup]="credentialsForm" (ngSubmit)="onSubmitCredentials()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="you@company.com" />
+          <mat-label [textContent]="'login.email' | translate"></mat-label>
+          <input matInput type="email" formControlName="email" [placeholder]="'login.emailPlaceholder' | translate" />
           @if (credentialsForm.get('email')?.hasError('required') && credentialsForm.get('email')?.touched) {
-            <mat-error>Email is required</mat-error>
+            <mat-error [textContent]="'login.emailRequired' | translate"></mat-error>
           }
           @if (credentialsForm.get('email')?.hasError('email') && credentialsForm.get('email')?.touched) {
-            <mat-error>Enter a valid email</mat-error>
+            <mat-error [textContent]="'login.emailInvalid' | translate"></mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
+          <mat-label [textContent]="'login.password' | translate"></mat-label>
           <input matInput type="password" formControlName="password" />
           @if (credentialsForm.get('password')?.hasError('required') && credentialsForm.get('password')?.touched) {
-            <mat-error>Password is required</mat-error>
+            <mat-error [textContent]="'login.passwordRequired' | translate"></mat-error>
           }
         </mat-form-field>
 
@@ -42,24 +58,22 @@
           @if (loading()) {
             <mat-spinner diameter="24" class="btn-spinner" />
           } @else {
-            Continue
+            <span [textContent]="'common.continue' | translate"></span>
           }
         </button>
       </form>
     } @else {
       <form class="login-form" [formGroup]="mfaForm" (ngSubmit)="onSubmitMfa()">
-        <p class="mfa-hint">
-          We sent a verification code to <strong [textContent]="maskEmail(email())"></strong>. Enter it below.
-        </p>
+        <p class="mfa-hint" [textContent]="'login.mfaHint' | translate:{ email: maskEmail(email()) }"></p>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Verification code</mat-label>
-          <input matInput formControlName="code" placeholder="000000" maxlength="10" inputmode="numeric" />
+          <mat-label [textContent]="'login.verifyCode' | translate"></mat-label>
+          <input matInput formControlName="code" [placeholder]="'login.verifyCodePlaceholder' | translate" maxlength="10" inputmode="numeric" />
           @if (mfaForm.get('code')?.hasError('required') && mfaForm.get('code')?.touched) {
-            <mat-error>Code is required</mat-error>
+            <mat-error [textContent]="'login.codeRequired' | translate"></mat-error>
           }
           @if (mfaForm.get('code')?.hasError('minlength') && mfaForm.get('code')?.touched) {
-            <mat-error>Code must be at least 4 characters</mat-error>
+            <mat-error [textContent]="'login.codeMinLength' | translate"></mat-error>
           }
         </mat-form-field>
 
@@ -76,12 +90,12 @@
           @if (loading()) {
             <mat-spinner diameter="24" class="btn-spinner" />
           } @else {
-            Verify and sign in
+            <span [textContent]="'login.verifyAndSignIn' | translate"></span>
           }
         </button>
 
         <button mat-button type="button" class="back-btn" (click)="backToCredentials()">
-          Use different account
+          <span [textContent]="'login.useDifferentAccount' | translate"></span>
         </button>
       </form>
     }

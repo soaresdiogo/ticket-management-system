@@ -1,0 +1,223 @@
+<div class="client-dashboard">
+  <!-- Top nav -->
+  <header class="topnav" mat-toolbar>
+    <div class="topnav-brand">
+      <div class="logo-row">
+        <div class="logo-mark">
+          <mat-icon fontSet="material-symbols-outlined" fontIcon="layers" />
+        </div>
+        <span class="logo-name" [textContent]="'client.appName' | translate"></span>
+        <span class="logo-divider"></span>
+        <span class="logo-client" [textContent]="'client.portal' | translate"></span>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a routerLink="/dashboard/client" routerLinkActive="active" class="nav-link"><span [textContent]="'client.dashboard' | translate"></span></a>
+      <a class="nav-link"><span [textContent]="'client.myTickets' | translate"></span></a>
+      <a class="nav-link"><span [textContent]="'client.documents' | translate"></span></a>
+      <a class="nav-link"><span [textContent]="'client.support' | translate"></span></a>
+    </nav>
+    <span class="spacer"></span>
+    <div class="topnav-actions">
+      <button mat-icon-button [matBadge]="notificationCount()" matBadgeColor="warn" matBadgeSize="small" aria-label="Notificações">
+        <mat-icon fontSet="material-symbols-outlined" fontIcon="notifications" />
+      </button>
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
+        <span class="user-av" [textContent]="initials()"></span>
+        <span class="user-name" [textContent]="displayName()"></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section" [textContent]="'client.menu' | translate"></div>
+      <a routerLink="/dashboard/client" routerLinkActive="active" class="side-link">
+        <mat-icon fontSet="material-symbols-outlined" fontIcon="dashboard" />
+        <span [textContent]="'client.home' | translate"></span>
+      </a>
+      <a class="side-link">
+        <mat-icon fontSet="material-symbols-outlined" fontIcon="forum" />
+        <span [textContent]="'client.tickets' | translate"></span>
+        @if (openTicketsCount() > 0) {
+          <span class="notif-count" [textContent]="openTicketsCount()"></span>
+        }
+      </a>
+      <a class="side-link">
+        <mat-icon fontSet="material-symbols-outlined" fontIcon="schedule" />
+        <span [textContent]="'client.history' | translate"></span>
+      </a>
+      <a class="side-link">
+        <mat-icon fontSet="material-symbols-outlined" fontIcon="description" />
+        <span [textContent]="'client.documents' | translate"></span>
+      </a>
+      <div class="sidebar-section sidebar-section--spaced" [textContent]="'client.account' | translate"></div>
+      <a class="side-link">
+        <mat-icon fontSet="material-symbols-outlined" fontIcon="person" />
+        <span [textContent]="'client.myAccount' | translate"></span>
+      </a>
+      <a class="side-link">
+        <mat-icon fontSet="material-symbols-outlined" fontIcon="settings" />
+        <span [textContent]="'client.preferences' | translate"></span>
+      </a>
+      <div class="sidebar-footer">
+        <div class="plan-chip" [textContent]="'client.planLabel' | translate"></div>
+        <div class="plan-label" [textContent]="'client.renewal' | translate:{ date: '15/01/2026' }"></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2><span [textContent]="'client.welcome' | translate:{ name: displayName() }"></span></h2>
+          <p [innerHTML]="'client.openTicketsCount' | translate:{ count: openTicketsCount() }"></p>
+        </div>
+        <button mat-flat-button class="open-ticket-btn" (click)="openNewTicket()">
+          <mat-icon fontSet="material-symbols-outlined" fontIcon="add" />
+          <span [textContent]="'client.openNewTicket' | translate"></span>
+        </button>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metrics-row">
+        @for (metric of metrics(); track metric.label) {
+          <mat-card class="metric-tile fade-in">
+            <mat-card-content>
+              <div class="mt-top">
+                <span class="mt-label" [textContent]="metric.label"></span>
+                <mat-icon [class]="'mt-icon ' + metric.iconClass" [textContent]="metric.icon"></mat-icon>
+              </div>
+              <div class="mt-value" [textContent]="metric.value"></div>
+              <div class="mt-sub" [textContent]="metric.sub"></div>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+
+      <div class="content-grid">
+        <div style="display: flex; flex-direction: column; gap: 18px">
+          <!-- My Tickets -->
+          <mat-card>
+            <div class="card-head">
+              <div>
+                <div class="card-title" [textContent]="'client.myTicketsCard' | translate"></div>
+                <div class="card-subtitle" [textContent]="'client.activeAndRecent' | translate"></div>
+              </div>
+              <button mat-button color="primary"><span [textContent]="'common.seeAll' | translate"></span> →</button>
+            </div>
+            <mat-card-content>
+              <mat-list>
+                @for (ticket of recentTickets(); track ticket.id) {
+                  <mat-list-item>
+                    <mat-icon matListItemIcon [class]="'ticket-icon ' + ticket.categoryClass" [textContent]="ticket.categoryIcon"></mat-icon>
+                    <span matListItemTitle [textContent]="ticket.title"></span>
+                    <span matListItemLine [textContent]="ticket.description"></span>
+                    <div matListItemMeta class="ticket-meta">
+                      <mat-chip [class]="'pill ' + ticket.statusClass" [textContent]="ticket.statusLabel"></mat-chip>
+                      <span class="ticket-id" [textContent]="ticket.updatedAt"></span>
+                    </div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Documents -->
+          <mat-card>
+            <div class="card-head">
+              <div>
+                <div class="card-title" [textContent]="'client.availableDocuments' | translate"></div>
+                <div class="card-subtitle" [textContent]="'client.sharedBy' | translate"></div>
+              </div>
+              <button mat-button color="primary"><span [textContent]="'common.seeAll' | translate"></span> →</button>
+            </div>
+            <mat-card-content>
+              <mat-list>
+                @for (doc of recentDocuments(); track doc.name) {
+                  <mat-list-item>
+                    <mat-icon matListItemIcon>description</mat-icon>
+                    <span matListItemTitle [textContent]="doc.name"></span>
+                    <span matListItemLine [textContent]="doc.meta"></span>
+                    <button mat-icon-button matListItemMeta>
+                      <mat-icon>download</mat-icon>
+                    </button>
+                  </mat-list-item>
+                }
+              </mat-list>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 18px">
+          <!-- Ticket Status -->
+          <mat-card>
+            <div class="card-head">
+              <div>
+                <div class="card-title" [textContent]="'client.ticketStatus' | translate"></div>
+                <div class="card-subtitle ticket-id">#3841 — IRPJ</div>
+              </div>
+            </div>
+            <mat-card-content>
+              <app-status-tracker />
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Quick Actions -->
+          <mat-card>
+            <div class="card-head">
+              <div class="card-title" [textContent]="'client.quickActions' | translate"></div>
+            </div>
+            <mat-card-content>
+              <div class="quick-actions">
+                <button mat-stroked-button class="qa-btn" (click)="openNewTicket()">
+                  <mat-icon class="qa-icon">forum</mat-icon>
+                  <span class="qa-label" [textContent]="'client.newTicket' | translate"></span>
+                </button>
+                <button mat-stroked-button class="qa-btn">
+                  <mat-icon class="qa-icon">upload_file</mat-icon>
+                  <span class="qa-label" [textContent]="'client.uploadDocument' | translate"></span>
+                </button>
+                <button mat-stroked-button class="qa-btn">
+                  <mat-icon class="qa-icon">event</mat-icon>
+                  <span class="qa-label" [textContent]="'client.scheduleMeeting' | translate"></span>
+                </button>
+                <button mat-stroked-button class="qa-btn">
+                  <mat-icon class="qa-icon">help</mat-icon>
+                  <span class="qa-label" [textContent]="'client.helpCenter' | translate"></span>
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Notifications -->
+          <mat-card>
+            <div class="card-head">
+              <div class="card-title" [textContent]="'client.notifications' | translate"></div>
+              <button mat-button [textContent]="'client.markAsRead' | translate"></button>
+            </div>
+            <mat-card-content>
+              <mat-list>
+                @for (notif of notifications(); track notif.id) {
+                  <mat-list-item [class.notif-unread]="!notif.read">
+                    <mat-icon matListItemIcon [textContent]="notif.icon"></mat-icon>
+                    <span matListItemTitle [textContent]="notif.title"></span>
+                    <span matListItemLine [textContent]="notif.time"></span>
+                  </mat-list-item>
+                }
+              </mat-list>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<mat-menu #userMenu="matMenu">
+  <button mat-menu-item (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    <span [textContent]="'common.logout' | translate"></span>
+  </button>
+</mat-menu>

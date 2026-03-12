@@ -60,6 +60,22 @@ describe('AuthService', () => {
       expect(service.isAuthenticated()).toBe(true);
       expect(service.getAccessToken()).toBe('jwt.here');
     });
+
+    it('should set user profile when JWT contains sub and role', () => {
+      const payload = { sub: 'user-123', email: 'u@example.com', role: 'CLIENT', tenantId: 'tenant-1' };
+      const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const accessToken = `header.${payloadB64}.signature`;
+      service.verifyMfa({ email: 'u@example.com', code: '123456' }).subscribe();
+      const req = httpMock.expectOne('/auth/verify-mfa');
+      req.flush({ accessToken, tokenType: 'Bearer', expiresIn: 900 });
+      const profile = service.profile();
+      expect(profile).toEqual({
+        userId: 'user-123',
+        email: 'u@example.com',
+        role: 'CLIENT',
+        tenantId: 'tenant-1',
+      });
+    });
   });
 
   describe('refreshSession', () => {
