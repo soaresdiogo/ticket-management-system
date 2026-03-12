@@ -26,4 +26,9 @@ public class ListAllTicketsAdapter implements ListAllTicketsPort {
     public Page<Ticket> findByTenantId(UUID tenantId, Pageable pageable) {
         return ticketRepository.findByTenantId(tenantId, pageable);
     }
+
+    @Override
+    public Page<Ticket> findByTenantIdAndStatus(UUID tenantId, String status, Pageable pageable) {
+        return ticketRepository.findByTenantIdAndStatus(tenantId, status, pageable);
+    }
 }

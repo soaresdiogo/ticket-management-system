@@ -507,21 +507,95 @@
   border-radius: 20px;
 }
 
-.status-pill.aberto {
+.status-pill.aberto,
+.status-pill.status-open {
   background: rgba(239, 68, 68, 0.12);
   color: #fc8181;
 }
-.status-pill.andamento {
+.status-pill.andamento,
+.status-pill.status-in-progress {
   background: rgba(245, 158, 11, 0.12);
   color: var(--amber-light, #fcd34d);
 }
-.status-pill.aguardando {
+.status-pill.aguardando,
+.status-pill.status-awaiting {
   background: rgba(59, 130, 246, 0.12);
   color: #93c5fd;
 }
-.status-pill.resolvido {
+.status-pill.resolvido,
+.status-pill.status-resolved,
+.status-pill.status-closed {
   background: rgba(16, 185, 129, 0.12);
   color: #6ee7b7;
+}
+.status-pill.status-unknown {
+  background: rgba(113, 128, 150, 0.12);
+  color: var(--text-muted);
+}
+
+.table-loading,
+.table-error,
+.table-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 22px;
+  min-height: 200px;
+}
+
+.table-loading-text,
+.table-error p,
+.table-empty p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cell-subject {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cell-subject-title {
+  font-weight: 500;
+}
+.cell-subject-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.cell-client {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.cell-assignee {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.avatar-sm {
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
+}
+.cell-sla-value {
+  font-size: 10px;
+  font-weight: 600;
+}
+.cell-sla-bar {
+  height: 4px;
+  background: var(--navy-border);
+  border-radius: 2px;
+  margin-top: 3px;
+  width: 60px;
+  overflow: hidden;
+}
+.cell-sla-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.2s;
 }
 
 .mini-list {

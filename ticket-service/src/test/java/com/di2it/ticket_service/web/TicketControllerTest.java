@@ -176,10 +176,10 @@ class TicketControllerTest {
                 PageRequest.of(0, 20),
                 1
             );
-            when(listAllTicketsUseCase.listByTenant(eq(tenantId), any())).thenReturn(ticketPage);
+            when(listAllTicketsUseCase.listByTenant(eq(tenantId), any(), any())).thenReturn(ticketPage);
 
             ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
-                "ACCOUNTANT", tenantId, 0, 20);
+                "ACCOUNTANT", tenantId, 0, 20, null);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(result.getBody()).isNotNull();
@@ -187,29 +187,29 @@ class TicketControllerTest {
             assertThat(result.getBody().getContent().get(0).getId()).isEqualTo(savedTicket.getId());
             assertThat(result.getBody().getTotalElements()).isEqualTo(1);
             verify(listAllTicketsUseCase).listByTenant(
-                eq(tenantId), any(org.springframework.data.domain.Pageable.class));
+                eq(tenantId), any(org.springframework.data.domain.Pageable.class), eq(null));
         }
 
         @Test
         @DisplayName("returns 403 when role is not ACCOUNTANT")
         void returns403WhenNotAccountant() {
             ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
-                "CLIENT", tenantId, 0, 20);
+                "CLIENT", tenantId, 0, 20, null);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             assertThat(result.getBody()).isNull();
-            verify(listAllTicketsUseCase, never()).listByTenant(any(), any());
+            verify(listAllTicketsUseCase, never()).listByTenant(any(), any(), any());
         }
 
         @Test
         @DisplayName("returns 403 when role is null")
         void returns403WhenRoleNull() {
             ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
-                null, tenantId, 0, 20);
+                null, tenantId, 0, 20, null);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             assertThat(result.getBody()).isNull();
-            verify(listAllTicketsUseCase, never()).listByTenant(any(), any());
+            verify(listAllTicketsUseCase, never()).listByTenant(any(), any(), any());
         }
     }
 

@@ -59,7 +59,10 @@
     "tableSubject": "Assunto",
     "tableClient": "Cliente",
     "tableStatus": "Status",
-    "tableAssignee": "Responsável"
+    "tableAssignee": "Responsável",
+    "ticketsLoading": "Carregando chamados...",
+    "ticketsEmpty": "Nenhum chamado encontrado.",
+    "ticketsError": "Falha ao carregar chamados. Tente novamente."
   },
   "client": {
     "appName": "ContaFlow",

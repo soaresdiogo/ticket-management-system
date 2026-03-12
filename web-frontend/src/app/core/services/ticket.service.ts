@@ -15,6 +15,11 @@ export interface ListTicketsParams {
   size?: number;
 }
 
+export interface ListAllTicketsParams extends ListTicketsParams {
+  /** Optional status filter: OPEN, IN_PROGRESS, RESOLVED, CLOSED, AWAITING_VALIDATION */
+  status?: string;
+}
+
 /**
  * Service for ticket API operations.
  * Client uses GET /tickets (gateway forwards X-User-Id from JWT).
@@ -33,6 +38,21 @@ export class TicketService {
       .set('page', String(page))
       .set('size', String(size));
     return this.http.get<ListTicketsResponse>(TICKETS_API, { params: httpParams });
+  }
+
+  /**
+   * Fetches paginated list of all tickets for the tenant (office/ACCOUNTANT role).
+   * Requires authenticated request with ACCOUNTANT role; gateway forwards X-Tenant-Id.
+   */
+  getAllTickets(params: ListAllTicketsParams = {}): Observable<ListTicketsResponse> {
+    const { page = 0, size = 20, status } = params;
+    let httpParams = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size));
+    if (status) {
+      httpParams = httpParams.set('status', status);
+    }
+    return this.http.get<ListTicketsResponse>(`${TICKETS_API}/all`, { params: httpParams });
   }
 
   /**

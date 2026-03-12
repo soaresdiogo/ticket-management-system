@@ -17,6 +17,8 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     Page<Ticket> findByTenantId(UUID tenantId, Pageable pageable);
 
+    Page<Ticket> findByTenantIdAndStatus(UUID tenantId, String status, Pageable pageable);
+
     Optional<Ticket> findByIdAndTenantId(UUID id, UUID tenantId);
 
     boolean existsByIdAndClientId(UUID id, UUID clientId);

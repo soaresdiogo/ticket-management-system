@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -23,13 +24,18 @@ public class ListAllTicketsUseCase {
     }
 
     /**
-     * Returns a page of all tickets for the given tenant.
+     * Returns a page of all tickets for the given tenant, optionally filtered by status.
      *
      * @param tenantId tenant id from gateway (X-Tenant-Id)
      * @param pageable pagination (page index and size)
+     * @param status   optional status filter (e.g. OPEN, IN_PROGRESS, RESOLVED, CLOSED)
      * @return page of tickets for the tenant
      */
-    public Page<Ticket> listByTenant(UUID tenantId, Pageable pageable) {
+    public Page<Ticket> listByTenant(UUID tenantId, Pageable pageable, String status) {
+        if (status != null && !status.isBlank()) {
+            String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
+            return listAllTicketsPort.findByTenantIdAndStatus(tenantId, normalizedStatus, pageable);
+        }
         return listAllTicketsPort.findByTenantId(tenantId, pageable);
     }
 }

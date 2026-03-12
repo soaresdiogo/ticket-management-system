@@ -72,6 +72,29 @@ describe('TicketService', () => {
     req.flush(mockResponse);
   });
 
+  it('getAllTickets should call GET /tickets/all with default params', () => {
+    service.getAllTickets().subscribe((res) => {
+      expect(res).toEqual(mockResponse);
+      expect(res.content).toHaveLength(1);
+    });
+
+    const req = httpMock.expectOne((r) => r.url === '/tickets/all' && r.method === 'GET');
+    expect(req.request.params.get('page')).toBe('0');
+    expect(req.request.params.get('size')).toBe('20');
+    expect(req.request.params.has('status')).toBe(false);
+    req.flush(mockResponse);
+  });
+
+  it('getAllTickets should pass page, size and status', () => {
+    service.getAllTickets({ page: 2, size: 10, status: 'OPEN' }).subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === '/tickets/all' && r.method === 'GET');
+    expect(req.request.params.get('page')).toBe('2');
+    expect(req.request.params.get('size')).toBe('10');
+    expect(req.request.params.get('status')).toBe('OPEN');
+    req.flush(mockResponse);
+  });
+
   it('createTicket should POST to /tickets with request body', () => {
     const createRequest: CreateTicketRequest = {
       title: 'New ticket',
