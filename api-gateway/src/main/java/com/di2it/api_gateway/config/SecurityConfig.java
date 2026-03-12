@@ -22,7 +22,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/auth/login", "/auth/tenants/*/users", "/auth/public-key",
-                                "/auth/verify-mfa", "/auth/refresh", "/actuator/**").permitAll()
+                                "/auth/verify-mfa", "/auth/refresh", "/auth/logout", "/actuator/**").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();

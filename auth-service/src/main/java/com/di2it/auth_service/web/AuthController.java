@@ -8,6 +8,7 @@ import com.di2it.auth_service.service.InvalidCredentialsException;
 import com.di2it.auth_service.service.InvalidMfaCodeException;
 import com.di2it.auth_service.service.InvalidRefreshTokenException;
 import com.di2it.auth_service.service.LoginService;
+import com.di2it.auth_service.service.RefreshResult;
 import com.di2it.auth_service.service.RefreshTokenService;
 import com.di2it.auth_service.service.TenantNotFoundException;
 import com.di2it.auth_service.service.UserRegistrationService;
@@ -26,6 +27,9 @@ import com.di2it.auth_service.web.dto.VerifyMfaRequest;
 import com.di2it.auth_service.web.dto.VerifyMfaResponse;
 import com.di2it.auth_service.web.mapper.PublicKeyResponseMapper;
 import com.di2it.auth_service.web.mapper.RefreshResponseMapper;
+import com.di2it.auth_service.web.presenter.TokenCookiePresenter;
+import com.di2it.auth_service.config.CookieProperties;
+import com.di2it.auth_service.config.JwtKeyProperties;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,6 +39,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,11 +48,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -72,6 +79,8 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final ChangePasswordService changePasswordService;
     private final GetPublicKeyService getPublicKeyService;
+    private final CookieProperties cookieProperties;
+    private final JwtKeyProperties jwtKeyProperties;
 
     public AuthController(
         UserRegistrationService userRegistrationService,
@@ -79,7 +88,9 @@ public class AuthController {
         VerifyMfaService verifyMfaService,
         RefreshTokenService refreshTokenService,
         ChangePasswordService changePasswordService,
-        GetPublicKeyService getPublicKeyService
+        GetPublicKeyService getPublicKeyService,
+        CookieProperties cookieProperties,
+        JwtKeyProperties jwtKeyProperties
     ) {
         this.userRegistrationService = userRegistrationService;
         this.loginService = loginService;
@@ -87,6 +98,8 @@ public class AuthController {
         this.refreshTokenService = refreshTokenService;
         this.changePasswordService = changePasswordService;
         this.getPublicKeyService = getPublicKeyService;
+        this.cookieProperties = cookieProperties;
+        this.jwtKeyProperties = jwtKeyProperties;
     }
 
     /**
@@ -166,28 +179,68 @@ public class AuthController {
             .accessToken(result.getAccessToken())
             .tokenType(VerifyMfaResponse.TOKEN_TYPE_BEARER)
             .expiresIn(result.getExpiresInSeconds())
-            .refreshToken(result.getRefreshToken())
+            .refreshTokenSet(result.hasRefreshToken())
             .build();
-        return ResponseEntity.ok(response);
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+        if (result.hasRefreshToken()) {
+            responseBuilder.header(HttpHeaders.SET_COOKIE,
+                TokenCookiePresenter.setRefreshTokenCookie(
+                    result.getRefreshToken(),
+                    jwtKeyProperties.getRefreshTokenExpirySeconds(),
+                    cookieProperties
+                ).toString());
+        }
+        return responseBuilder.body(response);
     }
 
     /**
-     * Refresh: validate refresh token, issue new access token and new refresh token (rotation).
-     * POST /auth/refresh
+     * Refresh: validate refresh token (from HttpOnly cookie or body), issue new access token, set new refresh cookie.
+     * POST /auth/refresh. Send credentials so the refresh-token cookie is sent.
      */
     @Operation(
         summary = "Refresh tokens",
-        description = "Exchanges a valid refresh token for a new access token and a new refresh token (rotation).")
+        description = "Exchanges refresh token (cookie or body) for new access token. "
+            + "New refresh token set in HttpOnly cookie.")
     @ApiResponses({
-        @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "New tokens issued"),
+        @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "New access token and refresh cookie set"),
         @ApiResponse(responseCode = RESPONSE_CODE_UNAUTHORIZED, description = "Invalid or expired refresh token")
     })
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> refresh(@Valid @RequestBody RefreshRequest request) {
-        RefreshResponse response = RefreshResponseMapper.toResponse(
-            refreshTokenService.refresh(request.getRefreshToken())
-        );
-        return ResponseEntity.ok(response);
+    public ResponseEntity<RefreshResponse> refresh(
+        @CookieValue(name = "${auth.cookie.refresh-token-name:tms_refresh_token}", required = false)
+        String refreshTokenFromCookie,
+        @RequestBody(required = false) RefreshRequest body
+    ) {
+        String token = Optional.ofNullable(refreshTokenFromCookie)
+            .filter(t -> !t.isBlank())
+            .or(() -> Optional.ofNullable(body)
+                .map(RefreshRequest::getRefreshToken)
+                .filter(t -> !t.isBlank()))
+            .orElseThrow(() -> new InvalidRefreshTokenException("Missing refresh token. Send cookie or body."));
+        RefreshResult result = refreshTokenService.refresh(token);
+        RefreshResponse response = RefreshResponseMapper.toResponse(result);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE,
+                TokenCookiePresenter.setRefreshTokenCookie(
+                    result.getRefreshToken(),
+                    jwtKeyProperties.getRefreshTokenExpirySeconds(),
+                    cookieProperties
+                ).toString())
+            .body(response);
+    }
+
+    /**
+     * Logout: clears the refresh-token cookie. Client should discard the in-memory access token.
+     * POST /auth/logout
+     */
+    @Operation(summary = "Logout", description = "Clears the refresh token cookie. Call with credentials.")
+    @ApiResponse(responseCode = RESPONSE_CODE_OK, description = "Refresh cookie cleared")
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE,
+                TokenCookiePresenter.clearRefreshTokenCookie(cookieProperties).toString())
+            .build();
     }
 
     /**

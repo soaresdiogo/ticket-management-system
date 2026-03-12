@@ -115,7 +115,21 @@ Credentials in `.env.example` match `docker-compose.yml` (user `tms`, password `
 
 ## Running the services
 
-**Option A — Make (recommended; loads `.env`):**
+**Option A — Run all backend services at once (recommended for local dev):**
+
+```bash
+make run-all
+```
+
+This starts the API Gateway, Auth, Ticket, Notification, and File services in the background (ports 8080–8084). Ensure `make docker-up` and `make init-dbs` have been run first.
+
+**To stop all services:** Use `make stop-all`. Do not rely only on Ctrl+C—it often leaves Java processes running, which will cause "port already in use" when you run `make run-all` again.
+
+```bash
+make stop-all
+```
+
+**Option B — Run services individually (separate terminals; loads `.env`):**
 
 ```bash
 make run-gateway
@@ -125,7 +139,7 @@ make run-notification
 make run-file
 ```
 
-**Option B — Maven directly (set env or use `application.properties`):**
+**Option C — Maven directly (set env or use `application.properties`):**
 
 ```bash
 cd api-gateway && ./mvnw spring-boot:run
@@ -133,7 +147,7 @@ cd auth-service && ./mvnw spring-boot:run
 # ... etc
 ```
 
-**Option C — With env from `.env`:**
+**Option D — With env from `.env` (single service):**
 
 ```bash
 ./scripts/run-with-env.sh auth-service spring-boot:run
@@ -184,7 +198,7 @@ make clean
 ticket-management-system/
 ├── pom.xml                # Root Maven reactor (build all in cascade)
 ├── .env.example           # Env template (copy to .env; matches docker-compose)
-├── Makefile               # build, docker-up, run-*, install-hooks
+├── Makefile               # build, docker-up, run-*, run-all, stop-all, install-hooks
 ├── scripts/
 │   ├── run-with-env.sh   # Run a service with .env loaded
 │   └── git-hooks/        # pre-commit hook (installed via make install-hooks)

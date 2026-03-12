@@ -25,6 +25,8 @@ public class VerifyMfaResponse {
     @Schema(description = "Access token validity in seconds")
     private long expiresIn;
 
-    @Schema(description = "Opaque refresh token; present when requested. Use with POST /auth/refresh")
-    private String refreshToken;
+    @Schema(
+        description = "Refresh token is set in HttpOnly cookie (tms_refresh_token). Use POST /auth/refresh."
+    )
+    private Boolean refreshTokenSet;
 }
