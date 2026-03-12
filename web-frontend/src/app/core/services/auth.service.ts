@@ -1,12 +1,9 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, catchError, of } from 'rxjs';
 
 const AUTH_API = '/auth';
-const ACCESS_TOKEN_KEY = 'tms_access_token';
-const REFRESH_TOKEN_KEY = 'tms_refresh_token';
-const EXPIRES_AT_KEY = 'tms_expires_at';
 
 export interface LoginRequest {
   email: string;
@@ -27,15 +24,26 @@ export interface VerifyMfaResponse {
   accessToken: string;
   tokenType: string;
   expiresIn: number;
-  refreshToken?: string;
+  /** True when refresh token was set in HttpOnly cookie by the server. */
+  refreshTokenSet?: boolean;
 }
+
+export interface RefreshResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+  refreshTokenSet?: boolean;
+}
+
+/** In-memory only. Expiry is checked when reading token. */
+const DEFAULT_EXPIRES_AT = 0;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly accessToken = signal<string | null>(this.getStoredAccessToken());
-  private readonly refreshToken = signal<string | null>(this.getStoredRefreshToken());
+  private readonly accessToken = signal<string | null>(null);
+  private readonly expiresAt = signal<number>(DEFAULT_EXPIRES_AT);
 
-  readonly isAuthenticated = computed(() => !!this.accessToken());
+  readonly isAuthenticated = computed(() => this.hasValidAccessToken());
 
   constructor(
     private readonly http: HttpClient,
@@ -47,57 +55,56 @@ export class AuthService {
   }
 
   verifyMfa(body: VerifyMfaRequest): Observable<VerifyMfaResponse> {
-    return this.http.post<VerifyMfaResponse>(`${AUTH_API}/verify-mfa`, body).pipe(
-      tap((res) => {
-        this.setTokens(res.accessToken, res.refreshToken ?? null, res.expiresIn);
-      })
-    );
+    return this.http
+      .post<VerifyMfaResponse>(`${AUTH_API}/verify-mfa`, body, { withCredentials: true })
+      .pipe(tap((res) => this.setAccessToken(res.accessToken, res.expiresIn)));
+  }
+
+  /**
+   * Refresh access token using the HttpOnly refresh-token cookie.
+   * Call with withCredentials so the cookie is sent.
+   */
+  refreshSession(): Observable<RefreshResponse | null> {
+    return this.http
+      .post<RefreshResponse>(`${AUTH_API}/refresh`, {}, { withCredentials: true })
+      .pipe(
+        tap((res) => this.setAccessToken(res.accessToken, res.expiresIn)),
+        catchError(() => of(null))
+      );
   }
 
   logout(): void {
-    this.clearTokens();
-    this.router.navigate(['/login']);
+    this.http.post(`${AUTH_API}/logout`, {}, { withCredentials: true }).subscribe({
+      next: () => this.clearAndNavigate(),
+      error: () => this.clearAndNavigate(),
+    });
   }
 
   getAccessToken(): string | null {
+    if (!this.hasValidAccessToken()) return null;
     return this.accessToken();
   }
 
-  private setTokens(access: string, refresh: string | null, expiresIn: number): void {
-    const expiresAt = Date.now() + expiresIn * 1000;
+  private setAccessToken(access: string, expiresInSeconds: number): void {
+    const expiresAt = Date.now() + expiresInSeconds * 1000;
     this.accessToken.set(access);
-    this.refreshToken.set(refresh);
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(ACCESS_TOKEN_KEY, access);
-      localStorage.setItem(EXPIRES_AT_KEY, String(expiresAt));
-      if (refresh) localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
-    }
+    this.expiresAt.set(expiresAt);
   }
 
   private clearTokens(): void {
     this.accessToken.set(null);
-    this.refreshToken.set(null);
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem(EXPIRES_AT_KEY);
-    }
+    this.expiresAt.set(DEFAULT_EXPIRES_AT);
   }
 
-  private getStoredAccessToken(): string | null {
-    if (typeof localStorage === 'undefined') return null;
-    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-    const expiresAt = localStorage.getItem(EXPIRES_AT_KEY);
-    if (!token || !expiresAt) return null;
-    if (Date.now() >= Number(expiresAt)) {
-      this.clearTokens();
-      return null;
-    }
-    return token;
+  private clearAndNavigate(): void {
+    this.clearTokens();
+    this.router.navigate(['/login']);
   }
 
-  private getStoredRefreshToken(): string | null {
-    if (typeof localStorage === 'undefined') return null;
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  private hasValidAccessToken(): boolean {
+    const token = this.accessToken();
+    const expiresAt = this.expiresAt();
+    if (!token || !expiresAt) return false;
+    return Date.now() < expiresAt;
   }
 }
