@@ -110,3 +110,22 @@ failsafe-reports/
 
 coverage/
 jacoco.exec
+
+# =========================
+
+# Angular / Node.js (web-frontend)
+
+# =========================
+
+node_modules/
+.angular/
+*.tsbuildinfo
+.nyc_output/
+.storybook/static/
+*.tgz
+.npm
+.eslintcache
+.cache/
+.vite/
+dist/
+*.local
