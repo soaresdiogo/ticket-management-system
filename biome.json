@@ -1,0 +1,12 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "ignore": [
+      "**/*.component.html",
+      "web-frontend/src/**/*.html"
+    ]
+  },
+  "linter": {
+    "ignore": ["**/*.html"]
+  }
+}

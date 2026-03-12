@@ -7,7 +7,8 @@
     "seeAll": "See all",
     "manage": "Manage",
     "viewLog": "View log",
-    "new": "New"
+    "new": "New",
+    "retry": "Retry"
   },
   "login": {
     "title": "ContaFlow",
@@ -90,7 +91,19 @@
     "markAsRead": "Mark as read",
     "menu": "Menu",
     "planLabel": "Enterprise Plan",
-    "renewal": "Renewal: {{date}}"
+    "renewal": "Renewal: {{date}}",
+    "ticketStatus": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "awaitingValidation": "Awaiting Validation",
+      "unknown": "Unknown"
+    },
+    "ticketsLoading": "Loading tickets...",
+    "ticketsEmpty": "You have no tickets yet.",
+    "ticketsError": "Failed to load tickets. Try again later.",
+    "ticketCreatedAt": "Created {{date}}"
   },
   "status": {
     "received": "Ticket Received",

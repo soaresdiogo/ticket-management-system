@@ -298,6 +298,33 @@
   color: var(--text-muted);
 }
 
+.tickets-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.tickets-error {
+  padding: 24px;
+  text-align: center;
+
+  p {
+    margin: 0 0 16px 0;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+}
+
+.tickets-empty {
+  padding: 24px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
 .pill {
   font-size: 11px;
   font-weight: 600;
@@ -323,6 +350,33 @@
 .pill.resolvido {
   background: var(--green-light);
   color: #059669;
+}
+
+/* Status classes from TicketStatusService (API-driven list) */
+.pill.status-open {
+  background: var(--red-light);
+  color: #dc2626;
+}
+
+.pill.status-in-progress {
+  background: var(--amber-light);
+  color: #d97706;
+}
+
+.pill.status-resolved,
+.pill.status-closed {
+  background: var(--green-light);
+  color: #059669;
+}
+
+.pill.status-awaiting {
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.pill.status-unknown {
+  background: var(--border);
+  color: var(--text-muted);
 }
 
 .sidebar-footer {

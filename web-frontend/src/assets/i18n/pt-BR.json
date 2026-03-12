@@ -7,7 +7,8 @@
     "seeAll": "Ver todos",
     "manage": "Gerenciar",
     "viewLog": "Ver log",
-    "new": "Novo"
+    "new": "Novo",
+    "retry": "Tentar novamente"
   },
   "login": {
     "title": "ContaFlow",
@@ -90,7 +91,19 @@
     "markAsRead": "Marcar como lidas",
     "menu": "Menu",
     "planLabel": "Plano Empresarial",
-    "renewal": "Renovação: {{date}}"
+    "renewal": "Renovação: {{date}}",
+    "ticketStatus": {
+      "open": "Aberto",
+      "inProgress": "Em Andamento",
+      "resolved": "Resolvido",
+      "closed": "Fechado",
+      "awaitingValidation": "Aguardando Validação",
+      "unknown": "Desconhecido"
+    },
+    "ticketsLoading": "Carregando chamados...",
+    "ticketsEmpty": "Você ainda não tem chamados.",
+    "ticketsError": "Falha ao carregar chamados. Tente novamente.",
+    "ticketCreatedAt": "Criado em {{date}}"
   },
   "status": {
     "received": "Chamado Recebido",
