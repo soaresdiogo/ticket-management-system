@@ -1,0 +1,9 @@
+<mat-list-item>
+  <mat-icon matListItemIcon fontSet="material-symbols-outlined" fontIcon="forum" />
+  <span matListItemTitle [textContent]="ticket().title"></span>
+  <span matListItemLine [textContent]="ticket().description"></span>
+  <div matListItemMeta class="ticket-meta">
+    <mat-chip [class]="'pill ' + ticket().statusCssClass" [textContent]="ticket().statusLabelKey | translate"></mat-chip>
+    <span class="ticket-date" [textContent]="ticket().createdAtFormatted"></span>
+  </div>
+</mat-list-item>

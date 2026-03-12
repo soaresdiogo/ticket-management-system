@@ -108,19 +108,27 @@
               <button mat-button color="primary"><span [textContent]="'common.seeAll' | translate"></span> →</button>
             </div>
             <mat-card-content>
-              <mat-list>
-                @for (ticket of recentTickets(); track ticket.id) {
-                  <mat-list-item>
-                    <mat-icon matListItemIcon [class]="'ticket-icon ' + ticket.categoryClass" [textContent]="ticket.categoryIcon"></mat-icon>
-                    <span matListItemTitle [textContent]="ticket.title"></span>
-                    <span matListItemLine [textContent]="ticket.description"></span>
-                    <div matListItemMeta class="ticket-meta">
-                      <mat-chip [class]="'pill ' + ticket.statusClass" [textContent]="ticket.statusLabel"></mat-chip>
-                      <span class="ticket-id" [textContent]="ticket.updatedAt"></span>
-                    </div>
-                  </mat-list-item>
-                }
-              </mat-list>
+              @if (ticketsLoading()) {
+                <div class="tickets-loading">
+                  <mat-spinner diameter="32"></mat-spinner>
+                  <span [textContent]="'client.ticketsLoading' | translate"></span>
+                </div>
+              } @else if (ticketsError()) {
+                <div class="tickets-error">
+                  <p [textContent]="'client.ticketsError' | translate"></p>
+                  <button mat-stroked-button color="primary" (click)="retryLoadTickets()">
+                    <span [textContent]="'common.retry' | translate"></span>
+                  </button>
+                </div>
+              } @else if (ticketListDisplay().length === 0) {
+                <p class="tickets-empty" [textContent]="'client.ticketsEmpty' | translate"></p>
+              } @else {
+                <mat-list>
+                  @for (ticket of ticketListDisplay(); track ticket.id) {
+                    <app-client-ticket-row [ticket]="ticket" />
+                  }
+                </mat-list>
+              }
             </mat-card-content>
           </mat-card>
 

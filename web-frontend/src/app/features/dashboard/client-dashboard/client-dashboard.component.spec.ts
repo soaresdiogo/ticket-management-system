@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -10,24 +11,54 @@ import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DatePipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { of } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { TicketService } from '../../../core/services/ticket.service';
 import { createTranslateServiceMock, MockTranslatePipe } from '../../../core/testing/translate.mock';
 import { ClientDashboardComponent } from './client-dashboard.component';
 import { StatusTrackerComponent } from './status-tracker/status-tracker.component';
+import { ClientTicketRowComponent } from './client-ticket-list/client-ticket-row.component';
+import type { ListTicketsResponse } from '../../../core/models/ticket.model';
 
 const translateMock = createTranslateServiceMock();
+
+const mockTicketsResponse: ListTicketsResponse = {
+  content: [
+    {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      tenantId: '550e8400-e29b-41d4-a716-446655440001',
+      clientId: '550e8400-e29b-41d4-a716-446655440002',
+      title: 'Test ticket',
+      description: 'Description',
+      status: 'OPEN',
+      priority: 'NORMAL',
+      category: 'TAX',
+      createdAt: '2025-03-12T10:00:00Z',
+    },
+  ],
+  totalElements: 1,
+  totalPages: 1,
+  number: 0,
+  size: 20,
+};
 
 describe('ClientDashboardComponent', () => {
   let component: ClientDashboardComponent;
   let fixture: ComponentFixture<ClientDashboardComponent>;
   let authMock: { profile: () => { email: string } | null; logout: () => void };
+  let ticketServiceMock: { getMyTickets: () => ReturnType<TicketService['getMyTickets']> };
 
   beforeEach(async () => {
     authMock = {
       profile: () => ({ userId: '1', email: 'tech@company.com', role: 'CLIENT', tenantId: null }),
       logout: () => {},
+    };
+    ticketServiceMock = {
+      getMyTickets: () => of(mockTicketsResponse),
     };
     await TestBed.configureTestingModule({
       imports: [
@@ -37,12 +68,19 @@ describe('ClientDashboardComponent', () => {
         TranslateModule.forChild(),
       ],
       providers: [
+        DatePipe,
         { provide: AuthService, useValue: authMock },
         { provide: TranslateService, useValue: translateMock },
+        { provide: TicketService, useValue: ticketServiceMock },
       ],
     });
     TestBed.overrideComponent(StatusTrackerComponent, {
       set: { imports: [MatCardModule, MockTranslatePipe] },
+    });
+    TestBed.overrideComponent(ClientTicketRowComponent, {
+      set: {
+        imports: [MatListModule, MatChipsModule, MatIconModule, MockTranslatePipe],
+      },
     });
     TestBed.overrideComponent(ClientDashboardComponent, {
       set: {
@@ -57,8 +95,11 @@ describe('ClientDashboardComponent', () => {
           MatChipsModule,
           MatMenuModule,
           MatBadgeModule,
+          MatProgressSpinnerModule,
+          DatePipe,
           MockTranslatePipe,
           StatusTrackerComponent,
+          ClientTicketRowComponent,
         ],
       },
     });
@@ -92,11 +133,17 @@ describe('ClientDashboardComponent', () => {
     expect(component.metrics()[0].label).toBe('Em Aberto');
   });
 
-  it('should have openTicketsCount', () => {
-    expect(component.openTicketsCount()).toBe(3);
+  it('should load tickets on init and set openTicketsCount from response', async () => {
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(component.openTicketsCount()).toBe(1);
+    expect(component.ticketListDisplay().length).toBe(1);
+    expect(component.ticketListDisplay()[0].title).toBe('Test ticket');
   });
 
-  it('should have recent tickets', () => {
-    expect(component.recentTickets().length).toBeGreaterThan(0);
+  it('should call retryLoadTickets and reload from TicketService', () => {
+    const getMyTicketsSpy = vi.spyOn(ticketServiceMock, 'getMyTickets').mockReturnValue(of(mockTicketsResponse));
+    component.retryLoadTickets();
+    expect(getMyTicketsSpy).toHaveBeenCalled();
   });
 });

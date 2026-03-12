@@ -1,5 +1,22 @@
-# Normalizar line endings
+# Normalize line endings automatically
 * text=auto
 
-# Scripts Windows (.cmd) devem usar CRLF
+# Windows command scripts should use CRLF
 *.cmd text eol=crlf
+
+# Explicitly define frontend languages
+*.ts linguist-language=TypeScript
+*.html linguist-language=HTML
+*.css linguist-language=CSS
+
+# Ensure Angular frontend directory is analyzed
+web-frontend/** linguist-detectable=true
+
+# Ignore generated files from language statistics
+dist/** linguist-generated=true
+coverage/** linguist-generated=true
+target/** linguist-generated=true
+build/** linguist-generated=true
+
+# Ignore vendored dependencies
+node_modules/** linguist-vendored=true

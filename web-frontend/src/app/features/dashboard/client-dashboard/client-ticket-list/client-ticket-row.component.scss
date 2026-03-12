@@ -1,0 +1,11 @@
+.ticket-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.ticket-date {
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
