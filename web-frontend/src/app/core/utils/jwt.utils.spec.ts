@@ -29,10 +29,10 @@ describe('decodeJwtPayload', () => {
   });
 
   it('should decode payload with only required claims', () => {
-    const payload = { sub: 'id', role: 'ACCOUNTANT' };
+    const payload = { sub: 'id', role: 'USER' };
     const token = `x.${base64UrlEncode(JSON.stringify(payload))}.y`;
     const result = decodeJwtPayload(token);
     expect(result?.sub).toBe('id');
-    expect(result?.role).toBe('ACCOUNTANT');
+    expect(result?.role).toBe('USER');
   });
 });

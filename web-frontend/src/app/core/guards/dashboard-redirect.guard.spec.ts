@@ -5,13 +5,18 @@ import { AuthService } from '../services/auth.service';
 import { dashboardRedirectGuard } from './dashboard-redirect.guard';
 
 describe('dashboardRedirectGuard', () => {
-  let authMock: { isAuthenticated: () => boolean; profile: () => { role: string } | null };
+  let authMock: {
+    isAuthenticated: () => boolean;
+    profile: () => { role: string } | null;
+    isOfficeUser: () => boolean;
+  };
   let router: Router;
 
   beforeEach(() => {
     authMock = {
       isAuthenticated: () => true,
       profile: () => ({ userId: '1', email: 'u@x.com', role: 'CLIENT', tenantId: null }),
+      isOfficeUser: () => false,
     };
     TestBed.configureTestingModule({
       providers: [
@@ -28,17 +33,10 @@ describe('dashboardRedirectGuard', () => {
   });
 
   it('should redirect CLIENT to dashboard/client', () => {
-    authMock.profile = () => ({ userId: '1', email: 'u@x.com', role: 'CLIENT', tenantId: null });
+    authMock.isOfficeUser = () => false;
     const tree = TestBed.runInInjectionContext(() => dashboardRedirectGuard(null!, null!)) as unknown as { commands: unknown[] };
     expect(tree).toBeDefined();
     expect(tree.commands).toEqual(['/dashboard', 'client']);
-  });
-
-  it('should redirect ACCOUNTANT to dashboard/office', () => {
-    authMock.profile = () => ({ userId: '1', email: 'u@x.com', role: 'ACCOUNTANT', tenantId: 't1' });
-    const tree = TestBed.runInInjectionContext(() => dashboardRedirectGuard(null!, null!)) as unknown as { commands: unknown[] };
-    expect(tree).toBeDefined();
-    expect(tree.commands).toEqual(['/dashboard', 'office']);
   });
 
   it('should redirect unauthenticated user to login', () => {
@@ -48,8 +46,15 @@ describe('dashboardRedirectGuard', () => {
     expect(tree.commands).toEqual(['/login']);
   });
 
-  it('should redirect to dashboard/client when profile role is not ACCOUNTANT', () => {
-    authMock.profile = () => ({ userId: '1', email: 'u@x.com', role: 'USER', tenantId: null });
+  it('should redirect USER (office staff) to dashboard/office', () => {
+    authMock.isOfficeUser = () => true;
+    const tree = TestBed.runInInjectionContext(() => dashboardRedirectGuard(null!, null!)) as unknown as { commands: unknown[] };
+    expect(tree).toBeDefined();
+    expect(tree.commands).toEqual(['/dashboard', 'office']);
+  });
+
+  it('should redirect to dashboard/client when profile role is not USER', () => {
+    authMock.isOfficeUser = () => false;
     const tree = TestBed.runInInjectionContext(() => dashboardRedirectGuard(null!, null!)) as unknown as { commands: unknown[] };
     expect(tree.commands).toEqual(['/dashboard', 'client']);
   });

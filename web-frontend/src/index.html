@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      // Polyfill for Node-style "global" used by some bundled dependencies (e.g. in __require)
+      if (typeof globalThis.global === 'undefined') { globalThis.global = globalThis; }
+    </script>
     <meta charset="utf-8" />
     <title>WebFrontend</title>
     <base href="/" />

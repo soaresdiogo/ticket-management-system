@@ -141,6 +141,17 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>11.0.0</version>
+				<configuration>
+					<url>jdbc:postgresql://localhost:5432/tms_notifications</url>
+					<user>tms</user>
+					<password>tms</password>
+					<locations>filesystem:src/main/resources/db/migration</locations>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

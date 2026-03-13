@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -18,9 +19,11 @@ import { of } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { TicketService } from '../../../core/services/ticket.service';
+import { NotificationWebSocketService } from '../../../core/services/notification-websocket.service';
 import { OfficeTicketMapperService } from './services/office-ticket-mapper.service';
 import { createTranslateServiceMock, MockTranslatePipe } from '../../../core/testing/translate.mock';
 import { OfficeDashboardComponent } from './office-dashboard.component';
+import { TicketAttachmentsDialogComponent } from '../ticket-attachments-dialog/ticket-attachments-dialog.component';
 import type { ListTicketsResponse } from '../../../core/models/ticket.model';
 import type { OfficeTicketRow } from './models/office-ticket-row.model';
 
@@ -47,12 +50,14 @@ const mockTicketsResponse: ListTicketsResponse = {
 };
 
 const mockRow: OfficeTicketRow = {
+  rawId: '550e8400-e29b-41d4-a716-446655440000',
   id: '#550E8400',
   subject: 'IRPJ — Divergência',
   sub: 'Fiscal · 3/12/25',
   client: '550e8400…',
   statusLabelKey: 'client.ticketStatus.open',
   statusCssClass: 'status-open',
+  statusValue: 'OPEN',
   assignee: '—',
   assigneeInitials: '—',
   sla: '—',
@@ -65,19 +70,35 @@ describe('OfficeDashboardComponent', () => {
   let component: OfficeDashboardComponent;
   let fixture: ComponentFixture<OfficeDashboardComponent>;
   let authMock: { profile: () => { email: string } | null; logout: () => void };
-  let ticketServiceMock: { getAllTickets: () => ReturnType<TicketService['getAllTickets']> };
+  let ticketServiceMock: {
+    getAllTickets: () => ReturnType<TicketService['getAllTickets']>;
+    changeTicketStatus: (id: string, status: string) => ReturnType<TicketService['changeTicketStatus']>;
+  };
   let mapperMock: { toRow: (t: unknown) => OfficeTicketRow };
+  let notificationWsMock: { connect: () => void; notifications$: { subscribe: (fn: () => void) => { unsubscribe: () => void } } };
+  let dialogMock: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     authMock = {
-      profile: () => ({ userId: '1', email: 'marina.alves@contaboard.com', role: 'ACCOUNTANT', tenantId: 't1' }),
+      profile: () => ({ userId: '1', email: 'marina.alves@contaboard.com', role: 'USER', tenantId: 't1' }),
       logout: () => {},
     };
     ticketServiceMock = {
       getAllTickets: vi.fn(() => of(mockTicketsResponse)),
+      changeTicketStatus: vi.fn(() => of({ id: mockRow.rawId, status: 'IN_PROGRESS', updatedAt: '2025-03-12T12:00:00Z' })),
     };
     mapperMock = {
       toRow: () => mockRow,
+    };
+    notificationWsMock = {
+      connect: vi.fn(),
+      notifications$: { subscribe: vi.fn(() => ({ unsubscribe: () => {} })) },
+    };
+    dialogMock = {
+      open: vi.fn(() => ({
+        afterClosed: () => of(undefined),
+        close: () => {},
+      })),
     };
 
     await TestBed.configureTestingModule({
@@ -92,6 +113,8 @@ describe('OfficeDashboardComponent', () => {
         { provide: TranslateService, useValue: translateMock },
         { provide: TicketService, useValue: ticketServiceMock },
         { provide: OfficeTicketMapperService, useValue: mapperMock },
+        { provide: NotificationWebSocketService, useValue: notificationWsMock },
+        { provide: MatDialog, useValue: dialogMock },
       ],
     });
     TestBed.overrideComponent(OfficeDashboardComponent, {
@@ -186,5 +209,24 @@ describe('OfficeDashboardComponent', () => {
     expect(component.sidebarOpen()).toBe(true);
     component.closeSidebar();
     expect(component.sidebarOpen()).toBe(false);
+  });
+
+  it('changeTicketStatus should call ticketService.changeTicketStatus and reload tickets', () => {
+    const changeSpy = vi.mocked(ticketServiceMock.changeTicketStatus);
+    const getAllSpy = vi.spyOn(ticketServiceMock, 'getAllTickets').mockReturnValue(of(mockTicketsResponse));
+    component.changeTicketStatus(mockRow, 'IN_PROGRESS');
+    expect(changeSpy).toHaveBeenCalledWith(mockRow.rawId, 'IN_PROGRESS');
+    expect(getAllSpy).toHaveBeenCalled();
+  });
+
+  it('openAttachmentsDialog should open dialog with ticket data', () => {
+    component.openAttachmentsDialog(mockRow);
+    expect(dialogMock.open).toHaveBeenCalledWith(
+      TicketAttachmentsDialogComponent,
+      expect.objectContaining({
+        data: { ticketId: mockRow.rawId, ticketDisplayId: mockRow.id },
+        width: '420px',
+      })
+    );
   });
 });

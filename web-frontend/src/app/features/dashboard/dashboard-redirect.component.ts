@@ -26,11 +26,7 @@ export class DashboardRedirectComponent {
     private readonly auth: AuthService,
     private readonly router: Router
   ) {
-    const profile = this.auth.profile();
-    const target =
-      profile?.role === 'ACCOUNTANT'
-        ? ['/dashboard', 'office']
-        : ['/dashboard', 'client'];
-    this.router.navigate(target);
+    const isOfficeRole = this.auth.isOfficeUser();
+    this.router.navigate(isOfficeRole ? ['/dashboard', 'office'] : ['/dashboard', 'client']);
   }
 }

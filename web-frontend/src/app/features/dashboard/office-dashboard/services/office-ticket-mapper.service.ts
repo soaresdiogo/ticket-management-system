@@ -22,12 +22,14 @@ export class OfficeTicketMapperService {
     const sub = [item.category, createdAtFormatted].filter(Boolean).join(' · ') || '—';
     const priority = this.normalizePriority(item.priority);
     return {
+      rawId: item.id,
       id: this.formatId(item.id),
       subject: item.title,
       sub,
       client: this.formatClientId(item.clientId),
       statusLabelKey: display.labelKey,
       statusCssClass: display.cssClass,
+      statusValue: item.status ?? '',
       assignee: '—',
       assigneeInitials: '—',
       sla: '—',

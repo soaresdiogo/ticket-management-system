@@ -8,7 +8,9 @@
     "manage": "Manage",
     "viewLog": "View log",
     "new": "New",
-    "retry": "Retry"
+    "retry": "Retry",
+    "close": "Close",
+    "download": "Download"
   },
   "login": {
     "title": "ContaFlow",
@@ -52,6 +54,10 @@
     "open": "Open",
     "inProgress": "In Progress",
     "resolved": "Resolved",
+    "closed": "Closed",
+    "awaitingValidation": "Awaiting Validation",
+    "actions": "Actions",
+    "changeStatus": "Change status",
     "clientsWithTickets": "Clients with Tickets",
     "recentActivity": "Recent Activity",
     "operationsManager": "Operations Manager",
@@ -62,7 +68,12 @@
     "tableAssignee": "Assignee",
     "ticketsLoading": "Loading tickets...",
     "ticketsEmpty": "No tickets found.",
-    "ticketsError": "Failed to load tickets. Try again later."
+    "ticketsError": "Failed to load tickets. Try again later.",
+    "attachments": "Attachments",
+    "viewAttachments": "View attachments",
+    "attachmentsLoading": "Loading attachments...",
+    "attachmentsError": "Failed to load attachments.",
+    "attachmentsEmpty": "No attachments for this ticket."
   },
   "client": {
     "appName": "ContaFlow",

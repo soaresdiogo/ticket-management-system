@@ -1,0 +1,31 @@
+<div class="attachments-dialog">
+  <h2 mat-dialog-title [textContent]="'office.attachments' | translate"></h2>
+  <mat-dialog-content>
+    @if (loading()) {
+      <div class="attachments-loading">
+        <mat-spinner diameter="32"></mat-spinner>
+        <p [textContent]="'office.attachmentsLoading' | translate"></p>
+      </div>
+    } @else if (error()) {
+      <p class="attachments-error" [textContent]="'office.attachmentsError' | translate"></p>
+    } @else if (isEmpty()) {
+      <p class="attachments-empty" [textContent]="'office.attachmentsEmpty' | translate"></p>
+    } @else {
+      <mat-list>
+        @for (file of fileList(); track file.id) {
+          <mat-list-item>
+            <mat-icon matListItemIcon fontSet="material-symbols-outlined" fontIcon="description" />
+            <span matListItemTitle [textContent]="file.fileName"></span>
+            <span matListItemLine [textContent]="(file.fileSize | number) + ' bytes'"></span>
+            <button mat-icon-button matListItemMeta (click)="download(file)" [attr.aria-label]="'common.download' | translate">
+              <mat-icon>download</mat-icon>
+            </button>
+          </mat-list-item>
+        }
+      </mat-list>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="close()" [textContent]="'common.close' | translate"></button>
+  </mat-dialog-actions>
+</div>

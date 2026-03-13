@@ -37,7 +37,7 @@ export interface RefreshResponse {
   refreshTokenSet?: boolean;
 }
 
-/** User claims from JWT (role drives dashboard: CLIENT vs ACCOUNTANT/office). */
+/** User claims from JWT (role drives dashboard: CLIENT vs USER/office). */
 export interface UserProfile {
   userId: string;
   email: string;
@@ -57,10 +57,12 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this.hasValidAccessToken());
   readonly profile = computed(() => this.userProfile());
 
-  /** True if user has office/accountant role (ACCOUNTANT). */
-  readonly isOfficeUser = computed(() => this.userProfile()?.role === 'ACCOUNTANT');
+  /** True if user has office role (USER). */
+  readonly isOfficeUser = computed(() => {
+    return this.userProfile()?.role?.toUpperCase() === 'USER';
+  });
   /** True if user has client role (CLIENT). */
-  readonly isClientUser = computed(() => this.userProfile()?.role === 'CLIENT');
+  readonly isClientUser = computed(() => this.userProfile()?.role?.toUpperCase() === 'CLIENT');
 
   constructor(
     private readonly http: HttpClient,

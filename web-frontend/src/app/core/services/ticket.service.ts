@@ -6,6 +6,7 @@ import type {
   ListTicketsResponse,
   CreateTicketRequest,
   CreateTicketResponse,
+  ChangeTicketStatusResponse,
 } from '../models/ticket.model';
 
 const TICKETS_API = '/tickets';
@@ -41,8 +42,8 @@ export class TicketService {
   }
 
   /**
-   * Fetches paginated list of all tickets for the tenant (office/ACCOUNTANT role).
-   * Requires authenticated request with ACCOUNTANT role; gateway forwards X-Tenant-Id.
+   * Fetches paginated list of all tickets for the tenant (office/USER role).
+   * Requires authenticated request with USER role; gateway forwards X-Tenant-Id.
    */
   getAllTickets(params: ListAllTicketsParams = {}): Observable<ListTicketsResponse> {
     const { page = 0, size = 20, status } = params;
@@ -60,5 +61,14 @@ export class TicketService {
    */
   createTicket(request: CreateTicketRequest): Observable<CreateTicketResponse> {
     return this.http.post<CreateTicketResponse>(TICKETS_API, request);
+  }
+
+  /**
+   * Changes ticket status. Restricted to USER (office) role; gateway forwards X-User-Id, X-Tenant-Id, X-User-Role.
+   */
+  changeTicketStatus(ticketId: string, status: string): Observable<ChangeTicketStatusResponse> {
+    return this.http.patch<ChangeTicketStatusResponse>(`${TICKETS_API}/${ticketId}/status`, {
+      status,
+    });
   }
 }

@@ -81,47 +81,16 @@ export class CreateTicketDialogComponent implements OnInit {
   /** Form validity as a signal so computed(canSubmit) re-runs when form becomes valid. */
   private readonly formValid = signal(this.form.valid);
 
-  // #region agent log
   readonly canSubmit = computed(() => {
     const valid = this.formValid();
     const inProgress = this.submitInProgress();
-    const result = valid && !inProgress;
-    fetch('http://127.0.0.1:7584/ingest/3ae02373-567d-4b7d-be79-e71134a965c8', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '204607' },
-      body: JSON.stringify({
-        sessionId: '204607',
-        runId: 'post-fix',
-        location: 'create-ticket-dialog.component.ts:canSubmit',
-        message: 'canSubmit evaluated',
-        data: { formValid: valid, submitInProgress: inProgress, result },
-        timestamp: Date.now(),
-        hypothesisId: 'A',
-      }),
-    }).catch(() => {});
-    return result;
+    return valid && !inProgress;
   });
-  // #endregion
 
   ngOnInit(): void {
     this.formValid.set(this.form.valid);
-    this.form.statusChanges.subscribe((status) => {
+    this.form.statusChanges.subscribe(() => {
       this.formValid.set(this.form.valid);
-      // #region agent log
-      fetch('http://127.0.0.1:7584/ingest/3ae02373-567d-4b7d-be79-e71134a965c8', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '204607' },
-        body: JSON.stringify({
-          sessionId: '204607',
-          runId: 'post-fix',
-          location: 'create-ticket-dialog.component.ts:statusChanges',
-          message: 'form status changed',
-          data: { status, formValid: this.form.valid, value: this.form.getRawValue() },
-          timestamp: Date.now(),
-          hypothesisId: 'B',
-        }),
-      }).catch(() => {});
-      // #endregion
     });
   }
 

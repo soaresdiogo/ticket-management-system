@@ -34,6 +34,16 @@ Do not duplicate this DDL in Flyway. Use Flyway only for **changes** after the b
 3. Write **plain SQL** (DDL/DML). Keep each migration small and idempotent where possible (e.g. `IF NOT EXISTS` for PostgreSQL where supported).
 4. Run the service (or `mvn flyway:migrate` with the correct datasource); Flyway will apply only migrations with version > 1.
 
+## Checksum mismatch (repair)
+
+If a migration file was **edited after it was already applied**, Flyway will fail with e.g. `Migration checksum mismatch for migration version 2`. Each service has its **own database** and its **own** `V2__*.sql` (e.g. `V2__create_ticket_tables.sql`, `V2__create_notification_tables.sql`); different content and checksums between services are expected. Fix the schema history for the failing service so it matches that service’s current file:
+
+- **ticket-service:** From repo root run `make flyway-repair-ticket` (or `mvn -pl ticket-service flyway:repair`). Requires Postgres with `tms_tickets` DB.
+- **notification-service:** From repo root run `make flyway-repair-notification` (or `mvn -pl notification-service flyway:repair`). Requires Postgres with `tms_notifications` DB.
+- **file-service:** From repo root run `make flyway-repair-file` (or `mvn -pl file-service flyway:repair`). Requires Postgres with `tms_files` DB.
+
+Ensure Postgres is up with the corresponding DB (e.g. `make docker-up` and `make init-dbs`).
+
 ## Services using Flyway
 
 - **auth-service**
