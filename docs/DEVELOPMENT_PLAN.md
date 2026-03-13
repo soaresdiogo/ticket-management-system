@@ -97,9 +97,9 @@ Done after Auth so the JWT filter can be tested with real tokens.
 - [X] Client dashboard: list of tickets and status
 - [X] Create ticket and upload files
 - [X] Office dashboard: full list and filters
-- [ ] Change ticket status
-- [ ] WebSocket for real-time updates
-- [ ] File download
+- [X] Change ticket status
+- [X] WebSocket for real-time updates
+- [X] File download
 
 ---
 

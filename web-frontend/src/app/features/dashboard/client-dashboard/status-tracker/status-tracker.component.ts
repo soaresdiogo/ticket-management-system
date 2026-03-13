@@ -32,8 +32,8 @@ export interface TrackerStep {
               }
             </div>
             <div class="step-content">
-              <div class="step-label" [class.pending]="step.state === 'pending'">{{ step.labelKey | translate }}</div>
-              <div class="step-sub">{{ step.subKey | translate }}</div>
+              <div class="step-label" [class.pending]="step.state === 'pending'" [textContent]="step.labelKey | translate"></div>
+              <div class="step-sub" [textContent]="step.subKey | translate"></div>
             </div>
           </div>
         }

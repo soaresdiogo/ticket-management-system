@@ -1,7 +1,7 @@
 # TMS — One-command build, test, and run (for new developers)
 # Requires: JDK 25, Maven 3.x, Docker & docker-compose
 
-.PHONY: help build clean install test lint ci docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file run-all stop-all env-check install-hooks
+.PHONY: help build clean install test lint ci docker-up docker-down init-dbs run-gateway run-auth run-ticket run-notification run-file run-all stop-all env-check install-hooks flyway-repair-notification flyway-repair-file flyway-repair-ticket
 
 help:
 	@echo "TMS — Ticket Management System"
@@ -22,6 +22,9 @@ help:
 	@echo "  make run-file    - Run File Service"
 	@echo "  make run-all     - Run all backend services in background (gateway, auth, ticket, notification, file)"
 	@echo "  make stop-all    - Stop all backend services (kills processes on ports 8080-8084)"
+	@echo "  make flyway-repair-notification - Fix Flyway checksum mismatch for notification-service (run if migration V2 fails validation)"
+	@echo "  make flyway-repair-file        - Fix Flyway checksum mismatch for file-service (run if migration V2 fails validation)"
+	@echo "  make flyway-repair-ticket      - Fix Flyway checksum mismatch for ticket-service (run if migration V2 fails validation)"
 	@echo "  make env-check   - Check .env exists (copy .env.example to .env)"
 	@echo ""
 	@echo "First time: cp .env.example .env && make docker-up && make init-dbs && make install && make install-hooks"
@@ -93,7 +96,8 @@ run-file:
 
 # Run all backend services in background. Ensure docker-up and init-dbs are done first.
 # Use 'make stop-all' to stop them (Ctrl+C often leaves Java processes running).
-run-all: env-check
+# Runs Flyway repair for notification, file, and ticket services first so checksum mismatches don't block startup.
+run-all: env-check flyway-repair-notification flyway-repair-file flyway-repair-ticket
 	@echo "Starting all services in background..."
 	@./scripts/run-with-env.sh api-gateway spring-boot:run & \
 	./scripts/run-with-env.sh auth-service spring-boot:run & \
@@ -101,6 +105,37 @@ run-all: env-check
 	./scripts/run-with-env.sh notification-service spring-boot:run & \
 	./scripts/run-with-env.sh file-service spring-boot:run & \
 	wait
+
+# Fix Flyway schema history when migration file was changed after it was applied (checksum mismatch).
+# Uses same DB connection as app (sources .env). Requires Postgres with tms_notifications (make docker-up and make init-dbs).
+flyway-repair-notification:
+	@if [ -f .env ]; then set -a && . ./.env && set +a; fi; \
+	REPAIR_URL="jdbc:postgresql://$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$${DB_NAME:-tms_notifications}"; \
+	$(MVN) -f pom.xml -pl notification-service flyway:repair -q \
+		-Dflyway.url="$$REPAIR_URL" \
+		-Dflyway.user="$${DB_USER:-tms}" \
+		-Dflyway.password="$${DB_PASSWORD:-tms}"
+	@echo "Flyway repair done. You can run make run-all again."
+
+# Fix Flyway schema history for file-service (checksum mismatch for migration V2). Uses same DB as app (.env).
+flyway-repair-file:
+	@if [ -f .env ]; then set -a && . ./.env && set +a; fi; \
+	REPAIR_URL="jdbc:postgresql://$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$${DB_NAME:-tms_files}"; \
+	$(MVN) -f pom.xml -pl file-service flyway:repair -q \
+		-Dflyway.url="$$REPAIR_URL" \
+		-Dflyway.user="$${DB_USER:-tms}" \
+		-Dflyway.password="$${DB_PASSWORD:-tms}"
+	@echo "Flyway repair done. You can run make run-all again."
+
+# Fix Flyway schema history for ticket-service (checksum mismatch for migration V2). Uses same DB as app (.env).
+flyway-repair-ticket:
+	@if [ -f .env ]; then set -a && . ./.env && set +a; fi; \
+	REPAIR_URL="jdbc:postgresql://$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$${DB_NAME:-tms_tickets}"; \
+	$(MVN) -f pom.xml -pl ticket-service flyway:repair -q \
+		-Dflyway.url="$$REPAIR_URL" \
+		-Dflyway.user="$${DB_USER:-tms}" \
+		-Dflyway.password="$${DB_PASSWORD:-tms}"
+	@echo "Flyway repair done. You can run make run-all again."
 
 # Stop all TMS backend services by killing processes on ports 8080 (gateway), 8081 (auth), 8082 (ticket), 8083 (file), 8084 (notification).
 # Use this after run-all when Ctrl+C did not stop everything.

@@ -1,0 +1,18 @@
+.attachments-dialog {
+  min-width: 360px;
+}
+
+.attachments-loading,
+.attachments-error,
+.attachments-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.attachments-error {
+  color: var(--mat-error, #b00020);
+}

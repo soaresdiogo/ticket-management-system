@@ -191,7 +191,26 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("returns 403 when role is not ACCOUNTANT")
+        @DisplayName("returns 200 and paginated list when role is USER (office staff)")
+        void returns200AndPaginatedListWhenUser() {
+            Page<Ticket> ticketPage = new PageImpl<>(
+                List.of(savedTicket),
+                PageRequest.of(0, 20),
+                1
+            );
+            when(listAllTicketsUseCase.listByTenant(eq(tenantId), any(), any())).thenReturn(ticketPage);
+
+            ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
+                "USER", tenantId, 0, 20, null);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getBody()).isNotNull();
+            verify(listAllTicketsUseCase).listByTenant(
+                eq(tenantId), any(org.springframework.data.domain.Pageable.class), eq(null));
+        }
+
+        @Test
+        @DisplayName("returns 403 when role is not ACCOUNTANT or USER")
         void returns403WhenNotAccountant() {
             ResponseEntity<ListTicketsResponse> result = ticketController.listAllTickets(
                 "CLIENT", tenantId, 0, 20, null);
@@ -255,7 +274,22 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("returns 403 when role is not ACCOUNTANT")
+        @DisplayName("returns 200 when role is USER (office staff)")
+        void returns200WhenUser() {
+            ChangeTicketStatusRequest request = ChangeTicketStatusRequest.builder()
+                .status("IN_PROGRESS")
+                .build();
+            when(changeTicketStatusUseCase.changeStatus(any())).thenReturn(java.util.Optional.of(savedTicket));
+
+            ResponseEntity<ChangeTicketStatusResponse> result = ticketController.changeTicketStatus(
+                savedTicket.getId(), clientId, "USER", tenantId, request);
+
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            verify(changeTicketStatusUseCase).changeStatus(any());
+        }
+
+        @Test
+        @DisplayName("returns 403 when role is not ACCOUNTANT or USER")
         void returns403WhenNotAccountant() {
             ChangeTicketStatusRequest request = ChangeTicketStatusRequest.builder()
                 .status("IN_PROGRESS")

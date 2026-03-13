@@ -15,4 +15,11 @@ public final class WebConstants {
 
     /** Role required to list all tickets (tenant-scoped). */
     public static final String ROLE_ACCOUNTANT = "ACCOUNTANT";
+    /** Office staff role (same permissions as ACCOUNTANT for list/status). */
+    public static final String ROLE_USER = "USER";
+
+    /** True if the role is allowed to use office endpoints (list all tickets, change status). */
+    public static boolean isOfficeRole(String role) {
+        return role != null && (ROLE_ACCOUNTANT.equals(role) || ROLE_USER.equals(role));
+    }
 }

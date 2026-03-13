@@ -46,8 +46,10 @@ describe('OfficeTicketMapperService', () => {
     const row = service.toRow(mockTicket);
 
     expect(getDisplayMock).toHaveBeenCalledWith('OPEN');
+    expect(row.rawId).toBe(mockTicket.id);
     expect(row.id).toMatch(/^#/);
     expect(row.subject).toBe('IRPJ — Divergência');
+    expect(row.statusValue).toBe('OPEN');
     expect(row.sub).toContain('Fiscal');
     expect(row.client).toBeTruthy();
     expect(row.statusLabelKey).toBe('client.ticketStatus.open');

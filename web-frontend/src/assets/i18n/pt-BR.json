@@ -8,7 +8,9 @@
     "manage": "Gerenciar",
     "viewLog": "Ver log",
     "new": "Novo",
-    "retry": "Tentar novamente"
+    "retry": "Tentar novamente",
+    "close": "Fechar",
+    "download": "Baixar"
   },
   "login": {
     "title": "ContaFlow",
@@ -52,6 +54,10 @@
     "open": "Abertos",
     "inProgress": "Em Andamento",
     "resolved": "Resolvidos",
+    "closed": "Fechados",
+    "awaitingValidation": "Aguardando Validação",
+    "actions": "Ações",
+    "changeStatus": "Alterar status",
     "clientsWithTickets": "Clientes com Chamados",
     "recentActivity": "Atividade Recente",
     "operationsManager": "Gerente de Operações",
@@ -62,7 +68,12 @@
     "tableAssignee": "Responsável",
     "ticketsLoading": "Carregando chamados...",
     "ticketsEmpty": "Nenhum chamado encontrado.",
-    "ticketsError": "Falha ao carregar chamados. Tente novamente."
+    "ticketsError": "Falha ao carregar chamados. Tente novamente.",
+    "attachments": "Anexos",
+    "viewAttachments": "Ver anexos",
+    "attachmentsLoading": "Carregando anexos...",
+    "attachmentsError": "Falha ao carregar anexos.",
+    "attachmentsEmpty": "Nenhum anexo neste chamado."
   },
   "client": {
     "appName": "ContaFlow",

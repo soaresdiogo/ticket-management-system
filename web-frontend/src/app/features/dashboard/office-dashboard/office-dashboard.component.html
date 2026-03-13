@@ -232,6 +232,35 @@
                   </div>
                 </mat-cell>
               </ng-container>
+              <ng-container matColumnDef="actions">
+                <mat-header-cell *matHeaderCellDef></mat-header-cell>
+                <mat-cell *matCellDef="let row">
+                  <button mat-icon-button [matMenuTriggerFor]="rowActionsMenu" [attr.aria-label]="'office.actions' | translate">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #rowActionsMenu="matMenu">
+                    <button mat-menu-item [matMenuTriggerFor]="statusSubMenu" [disabled]="isStatusChangePending(row.rawId)">
+                      <mat-icon>swap_horiz</mat-icon>
+                      <span [textContent]="'office.changeStatus' | translate"></span>
+                    </button>
+                    <button mat-menu-item (click)="openAttachmentsDialog(row)">
+                      <mat-icon>attach_file</mat-icon>
+                      <span [textContent]="'office.viewAttachments' | translate"></span>
+                    </button>
+                  </mat-menu>
+                  <mat-menu #statusSubMenu="matMenu">
+                    @for (opt of statusOptions; track opt.value) {
+                      <button
+                        mat-menu-item
+                        (click)="changeTicketStatus(row, opt.value)"
+                        [disabled]="row.statusValue === opt.value"
+                      >
+                        <span [textContent]="opt.labelKey | translate"></span>
+                      </button>
+                    }
+                  </mat-menu>
+                </mat-cell>
+              </ng-container>
               <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
               <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
             </mat-table>

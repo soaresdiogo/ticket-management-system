@@ -17,6 +17,7 @@ import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { TicketService } from '../../../core/services/ticket.service';
 import { TicketStatusService } from '../../../core/services/ticket-status.service';
+import { NotificationWebSocketService } from '../../../core/services/notification-websocket.service';
 import type { TicketListItem } from '../../../core/models/ticket.model';
 import { StatusTrackerComponent } from './status-tracker/status-tracker.component';
 import {
@@ -85,6 +86,7 @@ export class ClientDashboardComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly ticketService = inject(TicketService);
   private readonly ticketStatusService = inject(TicketStatusService);
+  private readonly notificationWs = inject(NotificationWebSocketService);
   private readonly datePipe = inject(DatePipe);
   private readonly dialog = inject(MatDialog);
 
@@ -105,6 +107,8 @@ export class ClientDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTickets();
+    this.notificationWs.connect();
+    this.notificationWs.notifications$.subscribe(() => this.loadTickets());
   }
 
   private loadTickets(): void {

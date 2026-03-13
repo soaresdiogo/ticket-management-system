@@ -59,3 +59,15 @@ export interface CreateTicketResponse {
   category: string | null;
   createdAt: string;
 }
+
+/** Request body for PATCH /tickets/{id}/status. */
+export interface ChangeTicketStatusRequest {
+  status: string;
+}
+
+/** Response from PATCH /tickets/{id}/status. */
+export interface ChangeTicketStatusResponse {
+  id: string;
+  status: string;
+  updatedAt: string;
+}

@@ -9,18 +9,25 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { TicketService } from '../../../core/services/ticket.service';
+import { NotificationWebSocketService } from '../../../core/services/notification-websocket.service';
 import { OfficeTicketMapperService } from './services/office-ticket-mapper.service';
 import type { OfficeTicketRow } from './models/office-ticket-row.model';
 import {
   type OfficeTicketStatusFilter,
   OFFICE_TICKET_STATUS_FILTERS,
+  OFFICE_TICKET_STATUS_OPTIONS,
 } from './models/office-ticket-filter.model';
+import {
+  TicketAttachmentsDialogComponent,
+  type TicketAttachmentsDialogData,
+} from '../ticket-attachments-dialog/ticket-attachments-dialog.component';
 
 export interface OfficeMetric {
   label: string;
@@ -62,6 +69,7 @@ const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
     MatInputModule,
     MatTableModule,
     MatMenuModule,
+    MatDialogModule,
     MatProgressSpinnerModule,
     MatPaginatorModule,
     TranslateModule,
@@ -73,6 +81,8 @@ export class OfficeDashboardComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly ticketService = inject(TicketService);
   private readonly officeTicketMapper = inject(OfficeTicketMapperService);
+  private readonly notificationWs = inject(NotificationWebSocketService);
+  private readonly dialog = inject(MatDialog);
 
   readonly sidebarOpen = signal(false);
   readonly ticketsLoading = signal(false);
@@ -88,14 +98,18 @@ export class OfficeDashboardComponent implements OnInit {
   readonly pageIndex = computed(() => this.currentPage());
   readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
   readonly statusFilters = OFFICE_TICKET_STATUS_FILTERS;
+  readonly statusOptions = OFFICE_TICKET_STATUS_OPTIONS;
   readonly activeStatusFilter = computed(() => this.statusFilter());
-  readonly displayedColumns = ['id', 'subject', 'client', 'status', 'assignee', 'sla'];
+  readonly displayedColumns = ['id', 'subject', 'client', 'status', 'assignee', 'sla', 'actions'];
+  private readonly statusChangePending = signal<Set<string>>(new Set());
 
   readonly hasTickets = computed(() => this.ticketRows().length > 0);
   readonly isEmpty = computed(() => !this.ticketsLoading() && !this.ticketsError() && this.ticketRows().length === 0);
 
   ngOnInit(): void {
     this.loadTickets();
+    this.notificationWs.connect();
+    this.notificationWs.notifications$.subscribe(() => this.loadTickets());
   }
 
   loadTickets(): void {
@@ -136,6 +150,40 @@ export class OfficeDashboardComponent implements OnInit {
 
   retryLoadTickets(): void {
     this.loadTickets();
+  }
+
+  isStatusChangePending(rawId: string): boolean {
+    return this.statusChangePending().has(rawId);
+  }
+
+  changeTicketStatus(row: OfficeTicketRow, newStatus: string): void {
+    if (row.statusValue === newStatus) return;
+    this.statusChangePending.update((set) => new Set(set).add(row.rawId));
+    this.ticketService.changeTicketStatus(row.rawId, newStatus).subscribe({
+      next: () => {
+        this.statusChangePending.update((set) => {
+          const next = new Set(set);
+          next.delete(row.rawId);
+          return next;
+        });
+        this.loadTickets();
+      },
+      error: () => {
+        this.statusChangePending.update((set) => {
+          const next = new Set(set);
+          next.delete(row.rawId);
+          return next;
+        });
+      },
+    });
+  }
+
+  openAttachmentsDialog(row: OfficeTicketRow): void {
+    const data: TicketAttachmentsDialogData = {
+      ticketId: row.rawId,
+      ticketDisplayId: row.id,
+    };
+    this.dialog.open(TicketAttachmentsDialogComponent, { data, width: '420px' });
   }
 
   toggleSidebar(): void {

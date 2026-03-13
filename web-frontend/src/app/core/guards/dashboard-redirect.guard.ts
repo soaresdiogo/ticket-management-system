@@ -4,8 +4,7 @@ import { AuthService } from '../services/auth.service';
 
 /**
  * Redirects /dashboard to the role-appropriate dashboard.
- * CLIENT -> dashboard/client, ACCOUNTANT (office) -> dashboard/office.
- * Other roles default to dashboard/client.
+ * USER (office) -> dashboard/office. CLIENT and other roles -> dashboard/client.
  */
 export const dashboardRedirectGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -13,10 +12,7 @@ export const dashboardRedirectGuard: CanActivateFn = () => {
   if (!auth.isAuthenticated()) {
     return router.createUrlTree(['/login']);
   }
-  const profile = auth.profile();
-  const target =
-    profile?.role === 'ACCOUNTANT'
-      ? ['/dashboard', 'office']
-      : ['/dashboard', 'client'];
+  const isOfficeRole = auth.isOfficeUser();
+  const target = isOfficeRole ? ['/dashboard', 'office'] : ['/dashboard', 'client'];
   return router.createUrlTree(target);
 };

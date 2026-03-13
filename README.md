@@ -121,7 +121,7 @@ Credentials in `.env.example` match `docker-compose.yml` (user `tms`, password `
 make run-all
 ```
 
-This starts the API Gateway, Auth, Ticket, Notification, and File services in the background (ports 8080–8084). Ensure `make docker-up` and `make init-dbs` have been run first.
+This starts the API Gateway, Auth, Ticket, Notification, and File services in the background (ports 8080–8084). Ensure `make docker-up` and `make init-dbs` have been run first. If you see **500** or **Connection refused** on `GET /ws/info`, the notification service (port 8084) is not running—start it with `make run-notification` or wait for all services from `make run-all` to finish starting.
 
 **To stop all services:** Use `make stop-all`. Do not rely only on Ctrl+C—it often leaves Java processes running, which will cause "port already in use" when you run `make run-all` again.
 

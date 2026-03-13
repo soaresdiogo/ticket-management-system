@@ -7,6 +7,7 @@ import type {
   ListTicketsResponse,
   CreateTicketRequest,
   CreateTicketResponse,
+  ChangeTicketStatusResponse,
 } from '../models/ticket.model';
 
 describe('TicketService', () => {
@@ -122,5 +123,26 @@ describe('TicketService', () => {
     const req = httpMock.expectOne((r) => r.url === '/tickets' && r.method === 'POST');
     expect(req.request.body).toEqual(createRequest);
     req.flush(createResponse);
+  });
+
+  it('changeTicketStatus should PATCH /tickets/{id}/status with status body', () => {
+    const ticketId = '550e8400-e29b-41d4-a716-446655440000';
+    const newStatus = 'IN_PROGRESS';
+    const changeResponse: ChangeTicketStatusResponse = {
+      id: ticketId,
+      status: newStatus,
+      updatedAt: '2025-03-12T12:00:00Z',
+    };
+
+    service.changeTicketStatus(ticketId, newStatus).subscribe((res) => {
+      expect(res).toEqual(changeResponse);
+      expect(res.status).toBe(newStatus);
+    });
+
+    const req = httpMock.expectOne(
+      (r) => r.url === `/tickets/${ticketId}/status` && r.method === 'PATCH'
+    );
+    expect(req.request.body).toEqual({ status: newStatus });
+    req.flush(changeResponse);
   });
 });

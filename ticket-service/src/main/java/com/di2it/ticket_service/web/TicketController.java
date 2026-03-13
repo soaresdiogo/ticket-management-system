@@ -151,7 +151,7 @@ public class TicketController {
         @Parameter(description = "Optional status filter (e.g. OPEN, IN_PROGRESS, RESOLVED, CLOSED)")
         @RequestParam(required = false) String status
     ) {
-        if (!WebConstants.ROLE_ACCOUNTANT.equals(role)) {
+        if (!WebConstants.isOfficeRole(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, DEFAULT_SORT_FIELD));
@@ -180,7 +180,7 @@ public class TicketController {
         @RequestHeader(WebConstants.HEADER_TENANT_ID) UUID tenantId,
         @Valid @RequestBody ChangeTicketStatusRequest request
     ) {
-        if (!WebConstants.ROLE_ACCOUNTANT.equals(role)) {
+        if (!WebConstants.isOfficeRole(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         ChangeTicketStatusCommand command = ChangeTicketStatusCommand.builder()

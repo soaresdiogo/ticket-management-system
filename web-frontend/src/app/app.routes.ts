@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { dashboardRedirectGuard } from './core/guards/dashboard-redirect.guard';
+import { officeDashboardGuard } from './core/guards/office-dashboard.guard';
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/login/login.component').then((m) => m.LoginComponent) },
@@ -20,7 +21,7 @@ export const routes: Routes = [
     path: 'dashboard/office',
     loadComponent: () =>
       import('./features/dashboard/office-dashboard/office-dashboard.component').then((m) => m.OfficeDashboardComponent),
-    canActivate: [authGuard],
+    canActivate: [officeDashboardGuard],
   },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: 'dashboard' },
